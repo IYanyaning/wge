@@ -30,7 +30,15 @@ bool DetectXSS::evaluate(Transaction& t, const Common::Variant& operand) const {
   }
 
   std::string_view data = std::get<std::string_view>(operand);
-  return libinjection_xss(data.data(), data.size()) != 0;
+  bool is_xss = libinjection_xss(data.data(), data.size()) != 0;
+  if (is_xss) {
+    Common::EvaluateResults::Element value;
+    value.string_buffer_ = data;
+    value.variant_ = value.string_buffer_;
+    t.addCapture(std::move(value));
+  }
+
+  return is_xss;
 }
 } // namespace Operator
 } // namespace Wge
