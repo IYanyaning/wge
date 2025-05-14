@@ -36,9 +36,7 @@ public:
       : OperatorBase(macro, is_not) {}
 
 public:
-  bool evaluate(Transaction& t, const Common::Variant& operand) const override {
-    return is_not_ ^ false;
-  }
+  bool evaluate(Transaction& t, const Common::Variant& operand) const override { return false; }
 };
 } // namespace Operator
 } // namespace Wge
