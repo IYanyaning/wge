@@ -73,7 +73,8 @@ TEST(Common, queryParam) {
 
   {
     Wge::Common::Ragel::QueryParam query_param;
-    query_param.init("a=Can+I+please+have+a+Python+tutorial+for+qr+code+scanning%3f&b=2&%3b%2721io)=3");
+    query_param.init(
+        "a=Can+I+please+have+a+Python+tutorial+for+qr+code+scanning%3f&b=2&%3b%2721io)=3");
     auto map = query_param.get();
     EXPECT_EQ(map.size(), 3);
     EXPECT_EQ(map.find("a")->second, "Can I please have a Python tutorial for qr code scanning?");

@@ -47,7 +47,7 @@
   }
 
   action add_key_value {
-    std::string_view raw_key(p_start_key,key_len),raw_value(p_start_value,value_len);
+    std::string_view raw_key(p_start_key, key_len), raw_value(p_start_value, value_len);
     std::string decoded_key_str, decoded_value_str;
     std::string_view final_key = raw_key;
     std::string_view final_value = raw_value;
@@ -59,7 +59,7 @@
       urldecoded_storage.emplace_back(std::move(decoded_value_str));
       final_value = urldecoded_storage.back();
     }
-    auto result = query_params.insert({final_key,final_value});
+    auto result = query_params.insert({final_key, final_value});
     query_params_linked.emplace_back(result);
 
     p_start_key = nullptr;
