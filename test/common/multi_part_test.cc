@@ -63,12 +63,12 @@ TEST(Common, multiPart) {
   EXPECT_EQ(name_value_map.find("foo1")->second, "bar1\r\n");
   EXPECT_EQ(name_value_map.find("foo2")->second, "bar2\r\n");
   EXPECT_EQ(name_value_map.find("foo3")->second, "bar3\r\n");
-  EXPECT_EQ(name_value_linked[0]->first, "foo1");
-  EXPECT_EQ(name_value_linked[1]->first, "foo2");
-  EXPECT_EQ(name_value_linked[2]->first, "foo3");
-  EXPECT_EQ(name_value_linked[0]->second, "bar1\r\n");
-  EXPECT_EQ(name_value_linked[1]->second, "bar2\r\n");
-  EXPECT_EQ(name_value_linked[2]->second, "bar3\r\n");
+  EXPECT_EQ(name_value_linked[0].first, "foo1");
+  EXPECT_EQ(name_value_linked[1].first, "foo2");
+  EXPECT_EQ(name_value_linked[2].first, "foo3");
+  EXPECT_EQ(name_value_linked[0].second, "bar1\r\n");
+  EXPECT_EQ(name_value_linked[1].second, "bar2\r\n");
+  EXPECT_EQ(name_value_linked[2].second, "bar3\r\n");
 
   auto& name_filename_map = multi_part.getNameFileName();
   auto& name_filename_linked = multi_part.getNameFileNameLinked();
@@ -77,12 +77,12 @@ TEST(Common, multiPart) {
   EXPECT_EQ(name_filename_map.find("file1")->second, "hello1");
   EXPECT_EQ(name_filename_map.find("file2")->second, "hello2");
   EXPECT_EQ(name_filename_map.find("file3")->second, "hello3");
-  EXPECT_EQ(name_filename_linked[0]->first, "file1");
-  EXPECT_EQ(name_filename_linked[1]->first, "file2");
-  EXPECT_EQ(name_filename_linked[2]->first, "file3");
-  EXPECT_EQ(name_filename_linked[0]->second, "hello1");
-  EXPECT_EQ(name_filename_linked[1]->second, "hello2");
-  EXPECT_EQ(name_filename_linked[2]->second, "hello3");
+  EXPECT_EQ(name_filename_linked[0].first, "file1");
+  EXPECT_EQ(name_filename_linked[1].first, "file2");
+  EXPECT_EQ(name_filename_linked[2].first, "file3");
+  EXPECT_EQ(name_filename_linked[0].second, "hello1");
+  EXPECT_EQ(name_filename_linked[1].second, "hello2");
+  EXPECT_EQ(name_filename_linked[2].second, "hello3");
 
   auto& headers_map = multi_part.getHeaders();
   auto& headers_linked = multi_part.getHeadersLinked();
@@ -96,12 +96,12 @@ TEST(Common, multiPart) {
     ++count;
   }
   EXPECT_EQ(count, 2);
-  EXPECT_EQ(headers_linked[0]->first, "header1");
-  EXPECT_EQ(headers_linked[1]->first, "header2");
-  EXPECT_EQ(headers_linked[2]->first, "header2");
-  EXPECT_EQ(headers_linked[0]->second, "header1: value1");
-  EXPECT_EQ(headers_linked[1]->second, "header2: value2");
-  EXPECT_EQ(headers_linked[2]->second, "header2: value3");
+  EXPECT_EQ(headers_linked[0].first, "header1");
+  EXPECT_EQ(headers_linked[1].first, "header2");
+  EXPECT_EQ(headers_linked[2].first, "header2");
+  EXPECT_EQ(headers_linked[0].second, "header1: value1");
+  EXPECT_EQ(headers_linked[1].second, "header2: value2");
+  EXPECT_EQ(headers_linked[2].second, "header2: value3");
 }
 
 TEST(Common, multiPartError) {

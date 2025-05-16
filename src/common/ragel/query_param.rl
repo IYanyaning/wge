@@ -60,7 +60,7 @@
       final_value = urldecoded_storage.back();
     }
     auto result = query_params.insert({final_key, final_value});
-    query_params_linked.emplace_back(result);
+    query_params_linked.emplace_back(final_key, final_value);
 
     p_start_key = nullptr;
     p_start_value = nullptr;
@@ -78,7 +78,7 @@
 %% write data;
 
 static void parseQueryParam(std::string_view input,std::unordered_multimap<std::string_view, std::string_view>& query_params,
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& query_params_linked,
+  std::vector<std::pair<std::string_view, std::string_view>>& query_params_linked,
   std::list<std::string>& urldecoded_storage) {
   query_params.clear();
   query_params_linked.clear();

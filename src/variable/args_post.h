@@ -39,8 +39,7 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     // Get the query params by the request body processor type
-    const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>*
-        query_params = nullptr;
+    const std::vector<std::pair<std::string_view, std::string_view>>* query_params = nullptr;
     const std::unordered_multimap<std::string_view, std::string_view>* query_params_map = nullptr;
     switch (t.getRequestBodyProcessor()) {
     case BodyProcessorType::UrlEncoded:
@@ -70,17 +69,17 @@ public:
         // collection
         {
           for (auto& elem : *query_params) {
-            if (!hasExceptVariable(elem->first)) [[likely]] {
-              result.append(elem->second, elem->first);
+            if (!hasExceptVariable(elem.first)) [[likely]] {
+              result.append(elem.second, elem.first);
             }
           }
         },
         // collection regex
         {
           for (auto& elem : *query_params) {
-            if (!hasExceptVariable(elem->first)) [[likely]] {
-              if (match(elem->first)) {
-                result.append(elem->second, elem->first);
+            if (!hasExceptVariable(elem.first)) [[likely]] {
+              if (match(elem.first)) {
+                result.append(elem.second, elem.first);
               }
             }
           }

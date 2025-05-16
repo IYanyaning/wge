@@ -219,8 +219,8 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
         // The value is the entire part-header line -- including both the part-header name and the part-header value.
         std::string_view header_value(header_name.data(), te - header_name.data());
         MULTI_PART_LOG(std::format("insert header key:{},value:{}",header_name, header_value));
-        auto iter = headers_map.insert({ header_name, header_value});
-        headers_linked.emplace_back(iter);
+        auto iter = headers_map.insert({header_name, header_value});
+        headers_linked.emplace_back(header_name, header_value);
       }
     };
 
@@ -288,12 +288,12 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
           if(value_len > 0) {
             MULTI_PART_LOG(std::format("add name:{}, value:{}", name, std::string_view(p_value_start, value_len)));
             auto result = name_value_map.insert({name, std::string_view(p_value_start, value_len)});
-            name_value_linked.emplace_back(result);
+            name_value_linked.emplace_back(name, std::string_view(p_value_start, value_len));
           }
         }else{
           MULTI_PART_LOG(std::format("add name:{}, filename:{}", name, filename));
           auto result = name_filename_map.insert({name, filename});
-          name_filename_linked.emplace_back(result);
+          name_filename_linked.emplace_back(name, filename);
         }
 
         parse_complete = true;
@@ -332,11 +332,11 @@ static std::string_view trim(const char* start, size_t size) {
 static void parseMultiPart(std::string_view input, 
   std::string_view boundary, 
   std::unordered_multimap<std::string_view, std::string_view>& name_value_map,
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_value_linked, 
+  std::vector<std::pair<std::string_view, std::string_view>>& name_value_linked, 
   std::unordered_multimap<std::string_view, std::string_view>& name_filename_map,
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& name_filename_linked, 
+  std::vector<std::pair<std::string_view, std::string_view>>& name_filename_linked, 
   std::unordered_multimap<std::string_view, std::string_view>& headers_map,
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>& headers_linked, 
+  std::vector<std::pair<std::string_view, std::string_view>>& headers_linked, 
   Wge::MultipartStrictError& error_code, 
   uint32_t max_file_count) {
   using namespace Wge;

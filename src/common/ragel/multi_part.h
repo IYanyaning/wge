@@ -42,8 +42,7 @@ public:
     return name_value_map_;
   }
 
-  const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>&
-  getNameValueLinked() const {
+  const std::vector<std::pair<std::string_view, std::string_view>>& getNameValueLinked() const {
     return name_value_linked_;
   }
 
@@ -51,8 +50,7 @@ public:
     return name_filename_map_;
   }
 
-  const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>&
-  getNameFileNameLinked() const {
+  const std::vector<std::pair<std::string_view, std::string_view>>& getNameFileNameLinked() const {
     return name_filename_linked_;
   }
 
@@ -60,8 +58,7 @@ public:
     return headers_map_;
   }
 
-  const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>&
-  getHeadersLinked() const {
+  const std::vector<std::pair<std::string_view, std::string_view>>& getHeadersLinked() const {
     return headers_linked_;
   }
 
@@ -69,14 +66,11 @@ public:
 
 private:
   std::unordered_multimap<std::string_view, std::string_view> name_value_map_;
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-      name_value_linked_;
+  std::vector<std::pair<std::string_view, std::string_view>> name_value_linked_;
   std::unordered_multimap<std::string_view, std::string_view> name_filename_map_;
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-      name_filename_linked_;
+  std::vector<std::pair<std::string_view, std::string_view>> name_filename_linked_;
   std::unordered_multimap<std::string_view, std::string_view> headers_map_;
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-      headers_linked_;
+  std::vector<std::pair<std::string_view, std::string_view>> headers_linked_;
   MultipartStrictError multipart_strict_error_;
 };
 } // namespace Ragel

@@ -20,11 +20,11 @@
  */
 #pragma once
 
+#include <list>
+#include <string>
 #include <string_view>
 #include <unordered_map>
 #include <vector>
-#include <list>
-#include <string>
 
 namespace Wge {
 namespace Common {
@@ -38,16 +38,14 @@ public:
     return query_param_map_;
   }
 
-  const std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>&
-  getLinked() const {
+  const std::vector<std::pair<std::string_view, std::string_view>>& getLinked() const {
     return query_param_linked_;
   }
 
 private:
   std::list<std::string> urldecoded_storage_;
   std::unordered_multimap<std::string_view, std::string_view> query_param_map_;
-  std::vector<std::unordered_multimap<std::string_view, std::string_view>::iterator>
-      query_param_linked_;
+  std::vector<std::pair<std::string_view, std::string_view>> query_param_linked_;
 };
 } // namespace Ragel
 } // namespace Common

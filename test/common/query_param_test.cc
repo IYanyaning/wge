@@ -32,14 +32,14 @@ TEST(Common, queryParam) {
     EXPECT_EQ(map.find("b")->second, "2");
     EXPECT_EQ(map.find("c")->second, "3");
 
-    auto linked = query_param.getLinked();
+    auto& linked = query_param.getLinked();
     EXPECT_EQ(linked.size(), 3);
-    EXPECT_EQ(linked[0]->first, "a");
-    EXPECT_EQ(linked[0]->second, "1");
-    EXPECT_EQ(linked[1]->first, "b");
-    EXPECT_EQ(linked[1]->second, "2");
-    EXPECT_EQ(linked[2]->first, "c");
-    EXPECT_EQ(linked[2]->second, "3");
+    EXPECT_EQ(linked[0].first, "a");
+    EXPECT_EQ(linked[0].second, "1");
+    EXPECT_EQ(linked[1].first, "b");
+    EXPECT_EQ(linked[1].second, "2");
+    EXPECT_EQ(linked[2].first, "c");
+    EXPECT_EQ(linked[2].second, "3");
   }
 
   {
@@ -51,14 +51,14 @@ TEST(Common, queryParam) {
     EXPECT_EQ(map.find("b")->second, "");
     EXPECT_EQ(map.find("c")->second, "3");
 
-    auto linked = query_param.getLinked();
+    auto& linked = query_param.getLinked();
     EXPECT_EQ(linked.size(), 3);
-    EXPECT_EQ(linked[0]->first, "a");
-    EXPECT_EQ(linked[0]->second, "1");
-    EXPECT_EQ(linked[1]->first, "b");
-    EXPECT_EQ(linked[1]->second, "");
-    EXPECT_EQ(linked[2]->first, "c");
-    EXPECT_EQ(linked[2]->second, "3");
+    EXPECT_EQ(linked[0].first, "a");
+    EXPECT_EQ(linked[0].second, "1");
+    EXPECT_EQ(linked[1].first, "b");
+    EXPECT_EQ(linked[1].second, "");
+    EXPECT_EQ(linked[2].first, "c");
+    EXPECT_EQ(linked[2].second, "3");
   }
 
   {
@@ -83,11 +83,11 @@ TEST(Common, queryParam) {
 
     auto linked = query_param.getLinked();
     EXPECT_EQ(linked.size(), 3);
-    EXPECT_EQ(linked[0]->first, "a");
-    EXPECT_EQ(linked[0]->second, "Can I please have a Python tutorial for qr code scanning?");
-    EXPECT_EQ(linked[1]->first, "b");
-    EXPECT_EQ(linked[1]->second, "2");
-    EXPECT_EQ(linked[2]->first, ";'21io)");
-    EXPECT_EQ(linked[2]->second, "3");
+    EXPECT_EQ(linked[0].first, "a");
+    EXPECT_EQ(linked[0].second, "Can I please have a Python tutorial for qr code scanning?");
+    EXPECT_EQ(linked[1].first, "b");
+    EXPECT_EQ(linked[1].second, "2");
+    EXPECT_EQ(linked[2].first, ";'21io)");
+    EXPECT_EQ(linked[2].second, "3");
   }
 }
