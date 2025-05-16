@@ -27,18 +27,19 @@ namespace Wge {
 
 /**
  * Header find function.
- * @param key the header key.
+ * @param lower_key the header key with lower case.
  * @return the header value. if the header does not exist, return empty string_view.
  */
-using HeaderFind = std::function<std::string_view(const std::string& key)>;
+using HeaderFind = std::function<std::string_view(std::string_view lower_key)>;
 
 /**
  * Header traversal callback.
- * @param key the header key.
+ * @param lower_key the header key with lower case.
  * @param value the header value.
  * @return true if continue traversal, false if stop traversal.
  */
-using HeaderTraversalCallback = std::function<bool(std::string_view key, std::string_view value)>;
+using HeaderTraversalCallback =
+    std::function<bool(std::string_view lower_key, std::string_view value)>;
 
 /**
  * Header traversal function.
