@@ -216,26 +216,24 @@ bool Transaction::processRequestBody(BodyExtractor body_extractor,
     const std::vector<std::string_view>& body = extractor_.reqeust_body_extractor_();
     if (!body.empty() && request_body_processor_.has_value()) {
       switch (request_body_processor_.value()) {
-        {
-        case BodyProcessorType::UnknownFormat: {
-          // Do nothing
-        } break;
-        case BodyProcessorType::UrlEncoded: {
-          body_query_param_.init(body.front());
-        } break;
-        case BodyProcessorType::MultiPart: {
-          auto content_type = extractor_.request_header_find_("content-type");
-          body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
-        } break;
-        case BodyProcessorType::Xml:
-          body_xml_.init(body.front());
-          break;
-        case BodyProcessorType::Json:
-          break;
-        default:
-          UNREACHABLE();
-          break;
-        }
+      case BodyProcessorType::UnknownFormat: {
+        // Do nothing
+      } break;
+      case BodyProcessorType::UrlEncoded: {
+        body_query_param_.init(body.front());
+      } break;
+      case BodyProcessorType::MultiPart: {
+        auto content_type = extractor_.request_header_find_("content-type");
+        body_multi_part_.init(content_type, body.front(), engine_.config().upload_file_limit_);
+      } break;
+      case BodyProcessorType::Xml: {
+        body_xml_.init(body.front());
+      } break;
+      case BodyProcessorType::Json: {
+      } break;
+      default: {
+        UNREACHABLE();
+      } break;
       }
     }
   }
