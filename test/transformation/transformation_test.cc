@@ -41,10 +41,12 @@ TEST_F(TransformationTest, base64Decode) {
   EXPECT_FALSE(ret);
   EXPECT_TRUE(result.empty());
 
+  // If the length of the data is not a multiple of 4, it is a invalid base64 string. But the
+  // Base64Decode can still try to decode it possibly.
   data = "VGhpcyBpcyBhIHRlc3Q";
   ret = base64_decode.evaluate(data, result);
-  EXPECT_FALSE(ret);
-  EXPECT_TRUE(result.empty());
+  EXPECT_TRUE(ret);
+  EXPECT_EQ(result, "This is a te");
 
   data = "VGhpcyBpcyBhIHRlc3=Q";
   ret = base64_decode.evaluate(data, result);
