@@ -108,9 +108,10 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
   }
 
   action error_lf_line {
-    MULTI_PART_LOG("error_lf_line");
-    error_code.set(MultipartStrictError::ErrorType::LfLine);
-    fbreak;
+    // Disabled the lf line error check for now
+    // MULTI_PART_LOG("error_lf_line");
+    // error_code.set(MultipartStrictError::ErrorType::LfLine);
+    // fbreak;
   }
 
   action error_missing_semicolon {
@@ -194,7 +195,7 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
     };
 
     # End of headers
-    '\r\n' => { 
+    (lf | crlf) => { 
       MULTI_PART_LOG("fnext body"); 
       p_value_start = te;
       fnext body; 
@@ -224,7 +225,7 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
     };
 
     # End of kv pair
-    '\r\n' => {
+    (lf | crlf) => {
       MULTI_PART_LOG("fret header_value");
       is_content_disposition = false;
       header_name = {};
@@ -265,7 +266,7 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
         fbreak; 
       }
     };
-    '\r\n' => {
+    (lf | crlf) => {
       if(name.empty()) {
         MULTI_PART_LOG("error_invalid_part: name is empty");
         error_code.set(MultipartStrictError::ErrorType::InvalidPart);

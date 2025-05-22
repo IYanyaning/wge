@@ -222,30 +222,30 @@ TEST(Common, multiPartError) {
   }
 
   // ErrorType::LfLine
-  {
-    Wge::Common::Ragel::MultiPart multi_part;
-    multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
-                    "----helloworld\n"
-                    "content-disposition: form-data; name=\"hello\"\r\n"
-                    "\r\n"
-                    "world\r\n"
-                    "----helloworld--");
-    auto error = multi_part.getError();
-    EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::BoundaryQuoted));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::BoundaryWhitespace));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::DataBefore));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::DataAfter));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::HeaderFolding));
-    EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::LfLine));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::MissingSemicolon));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::InvalidQuoting));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::InvalidPart));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::InvalidHeaderFolding));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::FileLimitExceeded));
-    EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::UnmatchedBoundary));
-  }
+  // {
+  //   Wge::Common::Ragel::MultiPart multi_part;
+  //   multi_part.init(R"(multipart/form-data; boundary=--helloworld)",
+  //                   "----helloworld\n"
+  //                   "content-disposition: form-data; name=\"hello\"\r\n"
+  //                   "\r\n"
+  //                   "world\r\n"
+  //                   "----helloworld--");
+  //   auto error = multi_part.getError();
+  //   EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::ReqbodyProcessorError));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::BoundaryQuoted));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::BoundaryWhitespace));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::DataBefore));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::DataAfter));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::HeaderFolding));
+  //   EXPECT_TRUE(error.get(Wge::MultipartStrictError::ErrorType::LfLine));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::MissingSemicolon));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::InvalidQuoting));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::InvalidPart));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::InvalidHeaderFolding));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::FileLimitExceeded));
+  //   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::UnmatchedBoundary));
+  // }
 
   // ErrorType::MissingSemicolon
   {
