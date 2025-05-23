@@ -23,12 +23,11 @@
 #include <chrono>
 #include <format>
 
-#include "common/ragel/uri_parser.h"
-
 #include "action/set_var.h"
 #include "common/assert.h"
 #include "common/empty_string.h"
 #include "common/log.h"
+#include "common/ragel/uri_parser.h"
 #include "common/try.h"
 #include "engine.h"
 #include "variable/variables_include.h"
@@ -428,8 +427,10 @@ void Transaction::removeRuleTarget(
     const std::array<std::unordered_set<const Rule*>, PHASE_TOTAL>& rules,
     const std::vector<std::shared_ptr<Variable::VariableBase>>& variables) {}
 
-void Transaction::pushMatchedVariable(const Variable::VariableBase* variable,
-                                      Common::EvaluateResults::Element&& result) {
+void Transaction::pushMatchedVariable(
+    const Variable::VariableBase* variable, Common::EvaluateResults::Element&& original_value,
+    Common::EvaluateResults::Element&& transformed_value,
+    std::vector<const Transformation::TransformBase*>&& transform_list) {
   // Fixes #27
   // When the MATCHED_VARS, MATCHED_VARS_NAMES, MATCHED_VAR,MATCHED_VAR_NAME  are evaluated, the
   // operators should not automatically store the matched variables again.
@@ -441,7 +442,12 @@ void Transaction::pushMatchedVariable(const Variable::VariableBase* variable,
     return;
   }
 
-  matched_variables_.emplace_back(variable, std::move(result));
+  matched_variables_.emplace_back(variable, std::move(original_value), std::move(transformed_value),
+                                  std::move(transform_list));
+  if (IS_EMPTY_VARIANT(matched_variables_.back().transformed_value_.variant_)) [[unlikely]] {
+    matched_variables_.back().transformed_value_.variant_ =
+        matched_variables_.back().original_value_.variant_;
+  }
 }
 
 void Transaction::initUniqueId() {

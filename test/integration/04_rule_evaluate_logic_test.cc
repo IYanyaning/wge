@@ -138,7 +138,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
         logdata:'%{MATCHED_VARS_NAMES}=%{MATCHED_VARS} %{MATCHED_VAR_NAME}=%{MATCHED_VAR}', \
         setvar:tx.test=+1")";
 
-    Engine engine(spdlog::level::trace);
+    Engine engine(spdlog::level::off);
     auto result = engine.load(directive);
     engine.init();
     auto t = engine.makeTransaction();

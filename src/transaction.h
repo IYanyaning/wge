@@ -50,6 +50,10 @@ namespace Variable {
 class VariableBase;
 } // namespace Variable
 
+namespace Transformation {
+class TransformBase;
+} // namespace Transformation
+
 class Transaction final {
   friend class Engine;
 
@@ -102,6 +106,22 @@ public:
     bool operator()(std::string_view lhs, std::string_view rhs) const noexcept {
       return lhs.data() == rhs.data() && lhs.size() == rhs.size();
     }
+  };
+
+  // For the MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS
+  struct MatchedVariable {
+    const Variable::VariableBase* variable_;
+    Common::EvaluateResults::Element original_value_;
+    Common::EvaluateResults::Element transformed_value_;
+    std::vector<const Transformation::TransformBase*> transform_list_;
+
+    MatchedVariable(const Variable::VariableBase* variable,
+                    Common::EvaluateResults::Element&& original_value,
+                    Common::EvaluateResults::Element&& transformed_value,
+                    std::vector<const Transformation::TransformBase*>&& transform_list)
+        : variable_(variable), original_value_(std::move(original_value)),
+          transformed_value_(std::move(transformed_value)),
+          transform_list_(std::move(transform_list)) {}
   };
 
 public:
@@ -402,16 +422,15 @@ public:
    * @param result the result of the matched variable.
    */
   void pushMatchedVariable(const Variable::VariableBase* variable,
-                           Common::EvaluateResults::Element&& result);
+                           Common::EvaluateResults::Element&& original_value,
+                           Common::EvaluateResults::Element&& transformed_value,
+                           std::vector<const Transformation::TransformBase*>&& transform_list);
 
   /**
    * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
    * @return the matched variables.
    */
-  const std::vector<std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>>&
-  getMatchedVariables() const {
-    return matched_variables_;
-  }
+  const std::vector<MatchedVariable>& getMatchedVariables() const { return matched_variables_; }
 
   /**
    * Get the transformation cache.
@@ -535,8 +554,6 @@ private:
   int current_phase_{1};
   size_t current_rule_index_{0};
   const Rule* current_rule_{nullptr};
-  using MatchedVariable =
-      std::pair<const Variable::VariableBase*, Common::EvaluateResults::Element>;
   std::vector<MatchedVariable> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
