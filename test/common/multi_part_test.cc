@@ -106,8 +106,9 @@ TEST(Common, multiPart) {
 
 TEST(Common, multiPart2) {
   Wge::Common::Ragel::MultiPart multi_part;
-  multi_part.init(R"(multipart/form-data; boundary=---------------------------133195688030725902433810601503)",
-                  R"(-----------------------------133195688030725902433810601503
+  multi_part.init(
+      R"(multipart/form-data; boundary=---------------------------133195688030725902433810601503)",
+      R"(-----------------------------133195688030725902433810601503
 Content-Disposition: form-data; name="key"
 
 e71bc53f1cb88666d160c1e2
@@ -124,7 +125,7 @@ Content-Disposition: form-data; name="payload"
 
 {"consent_session_id":"VUJVV3JvNW03SUxuV1V0YmhhQnR5SXFpOFc3UUhiQTU","banner_id":""}
 -----------------------------133195688030725902433810601503--)",
-                  3);
+      3);
   auto error = multi_part.getError();
   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
   auto& name_value_map = multi_part.getNameValue();
