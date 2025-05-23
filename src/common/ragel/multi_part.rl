@@ -390,12 +390,13 @@ static void parseMultiPart(std::string_view input,
     error_code.set(MultipartStrictError::ErrorType::InvalidPart);
   }
 
-  if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
-    name_value_map.clear();
-    name_value_linked.clear();
-    name_filename_map.clear();
-    name_filename_linked.clear();
-  }
+  // Does not need to clear the parse result when error occurs, keep the parse result as much as possible
+  // if(error_code.get(MultipartStrictError::ErrorType::MultipartStrictError)) {
+  //   name_value_map.clear();
+  //   name_value_linked.clear();
+  //   name_filename_map.clear();
+  //   name_filename_linked.clear();
+  // }
 }
 
 #undef MULTI_PART_LOG
