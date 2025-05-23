@@ -21,6 +21,7 @@
 #pragma once
 
 #include <string_view>
+#include <algorithm>
 
 #ifndef ENABLE_MULTI_PART_DEBUG_LOG
 #define ENABLE_MULTI_PART_DEBUG_LOG 0
@@ -175,22 +176,19 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
     # Invalid header folding
     [^ \t\r\n] [^ \t\r\n:]+ (lf | crlf) => error_invalid_header_folding;
 
-    # Content-Disposition header
-    "content-disposition:" [ \t]* => { 
-      MULTI_PART_LOG("fcall content-disposition header_value");
-      is_content_disposition = true;
-      name = {};
-      filename = {};
-      p_value_start = nullptr;
-      value_len = 0;
-      fcall header_value; 
-    };
-
-    # Other headers
     [^ \t\r\n]+ ':' [ \t]* => { 
       MULTI_PART_LOG("fcall header_value");
       header_name = trim(ts, te - ts);
       header_name.remove_suffix(1);
+      std::string lower_header_name;
+      lower_header_name.reserve(header_name.size());
+      std::transform(header_name.begin(), header_name.end(), std::back_inserter(lower_header_name), ::tolower);
+      if(lower_header_name == "content-disposition") {
+        is_content_disposition = true;
+      } else {
+        is_content_disposition = false;
+      }
+
       fcall header_value; 
     };
 
@@ -296,6 +294,11 @@ static std::string_view parseContentType(std::string_view input, Wge::MultipartS
           auto result = name_filename_map.insert({name, filename});
           name_filename_linked.emplace_back(name, filename);
         }
+
+        name = {};
+        filename = {};
+        p_value_start = nullptr;
+        value_len = 0;
 
         if(token.size() == boundary.size()){
           MULTI_PART_LOG("body fret");
