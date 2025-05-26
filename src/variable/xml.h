@@ -40,10 +40,10 @@ public:
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     const std::vector<std::string_view>* values = nullptr;
-    if (type_ == Type::AttrValue) {
-      values = &(t.getBodyXml().getAttrValues());
-    } else {
+    if (type_ == Type::TagValue) {
       values = &(t.getBodyXml().getTagValues());
+    } else {
+      values = &(t.getBodyXml().getAttrValues());
     }
 
     RETURN_IF_COUNTER(
@@ -52,21 +52,33 @@ public:
         // specify subname
         { result.append(static_cast<int>(values->size())); });
 
-    RETURN_VALUE(
-        // collection
-        {
-          for (auto& elem : *values) {
-            result.append(elem);
-          }
-        },
-        // collection regex
-        { UNREACHABLE(); },
-        // specify subname
-        {
-          for (auto& elem : *values) {
-            result.append(elem);
-          }
-        });
+    if (type_ == Type::TagValue) {
+      RETURN_VALUE(
+          // collection
+          { result.append(t.getBodyXml().getTagValuesStr()); },
+          // collection regex
+          { UNREACHABLE(); },
+          // specify subname
+          {
+            result.append(t.getBodyXml().getTagValuesStr());
+          });
+    } else {
+      RETURN_VALUE(
+          // collection
+          {
+            for (auto& elem : *values) {
+              result.append(elem);
+            }
+          },
+          // collection regex
+          { UNREACHABLE(); },
+          // specify subname
+          {
+            for (auto& elem : *values) {
+              result.append(elem);
+            }
+          });
+    }
   }
 
   bool isCollection() const override { return sub_name_.empty(); };

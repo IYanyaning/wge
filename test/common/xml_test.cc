@@ -56,6 +56,7 @@ TEST_F(XmlTest, ragle) {
   xml_parser.init(xml_);
   auto& attr_values = xml_parser.getAttrValues();
   auto& tag_values = xml_parser.getTagValues();
+  auto& tag_values_str = xml_parser.getTagValuesStr();
   EXPECT_EQ(attr_values.size(), 6);
   EXPECT_EQ(tag_values.size(), 4);
   EXPECT_EQ(attr_values[0], "1");
@@ -68,6 +69,15 @@ TEST_F(XmlTest, ragle) {
   EXPECT_EQ(tag_values[1], "John Doe");
   EXPECT_EQ(tag_values[2], "Advanced XML");
   EXPECT_EQ(tag_values[3], "Jane Smith");
+  EXPECT_EQ(tag_values_str, "\n"
+                            "  \n"
+                            "    XML Guide\n"
+                            "    John Doe\n"
+                            "  \n"
+                            "  \n"
+                            "    Advanced XML\n"
+                            "    Jane Smith\n"
+                            "  \n");
 }
 
 TEST_F(XmlTest, ragle2) {
@@ -75,10 +85,16 @@ TEST_F(XmlTest, ragle2) {
   xml_parser.init(xml2_);
   auto& attr_values = xml_parser.getAttrValues();
   auto& tag_values = xml_parser.getTagValues();
+  auto& tag_values_str = xml_parser.getTagValuesStr();
   EXPECT_EQ(attr_values.size(), 0);
   EXPECT_EQ(tag_values.size(), 2);
   EXPECT_EQ(tag_values[0], "pfsense.exec_php");
   EXPECT_EQ(tag_values[1], "<?php system('whoami'); ?>");
+  EXPECT_EQ(tag_values_str, "\n"
+                            "    pfsense.exec_php\n"
+                            "    \n"
+                            "        <?php system('whoami'); ?>\n"
+                            "    \n");
 }
 
 TEST_F(XmlTest, libxml) {

@@ -28,7 +28,8 @@ namespace Ragel {
 void Xml::init(std::string_view xml_str) {
   attr_values_.reserve(20);
   tag_values_.reserve(20);
-  parseXml(xml_str, attr_values_, tag_values_);
+  tag_values_str_.reserve(xml_str.size() / 2 + 1);
+  parseXml(xml_str, attr_values_, tag_values_, tag_values_str_);
 }
 } // namespace Ragel
 } // namespace Common

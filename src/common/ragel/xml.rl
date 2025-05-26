@@ -49,9 +49,9 @@
     WS = [ \t\r\n]*;
     
     main := |*
-      WS => skip;
-      '<?' ([^?] | ('?' [^>]))* '?>' => { XML_LOG(std::format("skip processing instruction: {}",std::string_view(ts, te - ts))); };
-      '<!--' ([^\-] | ('-' [^\-]))*  '-->' => { XML_LOG(std::format("skip comment: {}",std::string_view(ts, te - ts))); };
+      WS => { tag_values_str.append(ts, te - ts); };
+      '<?' ([^?] | ('?' [^>]))* '?>' WS => { XML_LOG(std::format("skip processing instruction: {}",std::string_view(ts, te - ts))); };
+      '<!--' ([^\-] | ('-' [^\-]))*  '-->' WS => { XML_LOG(std::format("skip comment: {}",std::string_view(ts, te - ts))); };
       '<' => { XML_LOG("fcall open_tag"); fcall open_tag; };
       any => error;
     *|;
@@ -78,18 +78,18 @@
     *|;
 
     tag_value := |*
-      WS => skip;
+      WS => { tag_values_str.append(ts, te - ts); };
       '</' => { XML_LOG("fnext close_tag"); fnext close_tag; };
       '<![CDATA[' => { XML_LOG("fcall tag_cdata_value"); fcall tag_cdata_value; };
       '<' => { XML_LOG("fgoto open_tag"); fgoto open_tag; };
-      [^<]+ => { XML_LOG(std::format("add tag value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); };
+      [^<]+ => { XML_LOG(std::format("add tag value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); tag_values_str.append(ts, te - ts); };
       any => error;
     *|;
 
     tag_cdata_value := |*
       WS => skip;
       ']]>' => { XML_LOG("fret tag_cdata_value"); fret; };
-      [^\]]+ => { XML_LOG(std::format("add tag cdata value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); };
+      [^\]]+ => { XML_LOG(std::format("add tag cdata value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); tag_values_str.append(ts, te - ts); };
       any => error; 
     *|;
 
@@ -104,9 +104,8 @@
 %% write data;
 
 static bool parseXml(std::string_view input, std::vector<std::string_view>& attr_values,
-  std::vector<std::string_view>& tag_values) {
-  attr_values.clear();
-  tag_values.clear();
+  std::vector<std::string_view>& tag_values,
+  std::string& tag_values_str) {
 
   const char* p = input.data();
   const char* pe = p + input.size();

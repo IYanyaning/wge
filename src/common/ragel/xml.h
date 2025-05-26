@@ -20,6 +20,7 @@
  */
 #pragma once
 
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -33,6 +34,7 @@ public:
 public:
   const std::vector<std::string_view>& getAttrValues() const { return attr_values_; }
   const std::vector<std::string_view>& getTagValues() const { return tag_values_; }
+  const std::string& getTagValuesStr() const { return tag_values_str_; }
 
   void clear() {
     attr_values_.clear();
@@ -42,6 +44,7 @@ public:
 private:
   std::vector<std::string_view> attr_values_;
   std::vector<std::string_view> tag_values_;
+  std::string tag_values_str_;
 };
 } // namespace Ragel
 } // namespace Common
