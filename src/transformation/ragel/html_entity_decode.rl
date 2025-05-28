@@ -63,10 +63,10 @@
     '&quot;' => exec_transformation;
     '&apos;' => exec_transformation;
     '&nbsp;' => exec_transformation;
-    '&#' [0-9]{1,7} [^0-9a-fA-F] => exec_transformation;
-    '&#x' [0-9a-fA-F]{1,6} [^0-9a-fA-F] => exec_transformation;
-    '&#' [0-9]{1,7} => exec_transformation_if_eof;
-    '&#x' [0-9a-fA-F]{1,6} => exec_transformation_if_eof;
+    '&#' '0'* [0-9]{1,7} [^0-9a-fA-F] => exec_transformation;
+    '&#' [xX] '0'* [0-9a-fA-F]{1,6} [^0-9a-fA-F] => exec_transformation;
+    '&#' '0'* [0-9]{1,7} => exec_transformation_if_eof;
+    '&#' [xX] '0'* [0-9a-fA-F]{1,6} => exec_transformation_if_eof;
     any => {};
   *|;
 
@@ -77,7 +77,7 @@
     '&quot;' => { *r++ = '"';};
     '&apos;' => { *r++ = '\'';};
     '&nbsp;' => { *r++ = ' ';};
-    '&#' [0-9]{1,7} [^0-9a-fA-F] => {
+    '&#' '0'* [0-9]{1,7} [^0-9a-fA-F] => {
       is_hex = false;
       entity_value = std::string(ts + 2, te - ts - 3);
       emitNumericEntity(&r, entity_value, is_hex);
@@ -85,7 +85,7 @@
         fhold;
       }
     };
-    '&#x' [0-9a-fA-F]{1,6} [^0-9a-fA-F] => {
+    '&#' [xX] '0'* [0-9a-fA-F]{1,6} [^0-9a-fA-F] => {
       is_hex = true;
       entity_value = std::string(ts + 3, te - ts - 4);
       emitNumericEntity(&r, entity_value, is_hex);
@@ -93,14 +93,14 @@
         fhold;
       }
     };
-    '&#' [0-9]{1,7} => {
+    '&#' '0'* [0-9]{1,7} => {
       if( te == eof ) {
         is_hex = false;
         entity_value = std::string(ts + 2, te - ts - 2);
         emitNumericEntity(&r, entity_value, is_hex);
       }
     };
-    '&#x' [0-9a-fA-F]{1,6} => {
+    '&#' [xX] '0'* [0-9a-fA-F]{1,6} => {
       if( te == eof ) {
         is_hex = true;
         entity_value = std::string(ts + 3, te - ts - 3);
