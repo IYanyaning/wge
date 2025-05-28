@@ -23,6 +23,7 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <forward_list>
 
 namespace Wge {
 namespace Common {
@@ -44,6 +45,7 @@ public:
 private:
   std::vector<std::string_view> attr_values_;
   std::vector<std::string_view> tag_values_;
+  std::forward_list<std::string> html_decode_buffer_;
   std::string tag_values_str_;
 };
 } // namespace Ragel

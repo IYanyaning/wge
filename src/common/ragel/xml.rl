@@ -22,6 +22,8 @@
 
 #include <string_view>
 #include <vector>
+#include <html_entity_decode.h>
+#include <forward_list>
 
 #ifndef ENABLE_XML_DEBUG_LOG
 #define ENABLE_XML_DEBUG_LOG 0
@@ -46,6 +48,14 @@
       fbreak;
     }
 
+    action open_tag {
+      XML_LOG(std::format("fgoto open_tag: {}",std::string_view(ts + 1, te - ts -1)));
+      last_tag_name = std::string_view(ts + 1, te - ts -1);
+      p = ts + 1;
+      fhold;
+      fgoto open_tag;
+    }
+
     WS = [ \t\r\n]*;
     
     main := |*
@@ -56,21 +66,22 @@
       '<!DOCTYPE' [^>]+ '>' WS => { XML_LOG(std::format("skip doctype: {}",std::string_view(ts, te - ts))); };
       # skip doctype with internal subset
       '<!DOCTYPE' [^>]+ '[' [^\]]+ ']'  '>' WS => { XML_LOG(std::format("skip doctype with internal subset: {}",std::string_view(ts, te - ts))); };
-      '<' => { XML_LOG("fcall open_tag"); fcall open_tag; };
+      '<' [^ !/\t>]+ => open_tag;
+      '</' [^>]+ '>' => skip; 
       any => error;
     *|;
 
     open_tag := |*
       WS => skip;
-      [^ =]+ '=' ['"] => { XML_LOG("fcall attr_value"); fcall attr_value; };
-      '>' => { XML_LOG("fnext tag_value"); fnext tag_value; };
+      [^ =]+ '=' ['"] => { XML_LOG("fgoto attr_value"); fgoto attr_value; };
+      '>' => { XML_LOG("fgoto tag_value"); fgoto tag_value; };
       '<' => error;
       any => skip;
     *|;
 
     attr_value := |*
       WS => skip;
-      ['"] => { XML_LOG("fret attr_value"); fret; };
+      ['"] => { XML_LOG("fgoto open_tag"); fgoto open_tag; };
       [^'" \t\r\n]+ => { 
         if(te == pe) {
           error = true;
@@ -83,16 +94,58 @@
 
     tag_value := |*
       WS => { tag_values_str.append(ts, te - ts); };
-      '</' => { XML_LOG("fnext close_tag"); fnext close_tag; };
-      '<![CDATA[' => { XML_LOG("fcall tag_cdata_value"); fcall tag_cdata_value; };
-      '<' => { XML_LOG("fgoto open_tag"); fgoto open_tag; };
-      [^<]+ => { XML_LOG(std::format("add tag value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); tag_values_str.append(ts, te - ts); };
+      '</' [^>]+ => {
+        std::string_view tag_name(ts + 2, te - ts - 2);
+        XML_LOG(std::format("find close_tag: {}", tag_name));
+        if(tag_name == last_tag_name) {
+          XML_LOG("fgoto close_tag");
+          fgoto close_tag;
+        }
+      };
+      '<![CDATA[' => { XML_LOG("fgoto tag_cdata_value"); fgoto tag_cdata_value; };
+      '<' [^ !/\t>]+ => open_tag;
+      [^<] => {
+        tag_value_start = ts;
+        XML_LOG("fgoto tag_value_no_open_tag");
+        p = ts;
+        fhold;
+        fgoto tag_value_no_open_tag;
+      };
       any => error;
+    *|;
+
+    tag_value_no_open_tag := |*
+      '</' [^>]+ => {
+        std::string_view tag_name(ts + 2, te - ts - 2);
+        XML_LOG(std::format("find close_tag: {}", tag_name));
+        if(tag_name == last_tag_name) {
+          if(tag_value_start) {
+            std::string_view tag_value(tag_value_start, tag_value_len);
+            std::string buffer;
+            bool success = htmlEntityDecode(tag_value, buffer);
+            if(success) {
+              html_decode_buffer.emplace_front(std::move(buffer));
+              tag_value = html_decode_buffer.front();
+            }
+            XML_LOG(std::format("add tag value:{}", tag_value));
+            tag_values.emplace_back(tag_value);
+            tag_values_str.append(tag_value);
+            tag_value_start = nullptr;
+            tag_value_len = 0;
+          }
+
+          XML_LOG("fgoto close_tag");
+          fgoto close_tag;
+        } else {
+          tag_value_len += te - ts;
+        }
+      };
+      any => { ++tag_value_len; };
     *|;
 
     tag_cdata_value := |*
       WS => skip;
-      ']]>' => { XML_LOG("fret tag_cdata_value"); fret; };
+      ']]>' => { XML_LOG("fgoto tag_value"); fgoto tag_value; };
       [^\]]+ => { XML_LOG(std::format("add tag cdata value:{}",std::string_view(ts, te - ts))); tag_values.emplace_back(ts, te - ts); tag_values_str.append(ts, te - ts); };
       any => error; 
     *|;
@@ -100,7 +153,7 @@
     close_tag := |*
       WS => skip;
       [^>]+ => skip;
-      '>' => { XML_LOG("fret close_tag"); fret; };
+      '>' => { XML_LOG("fgoto main"); fgoto main; };
       any => error;
     *|;
 }%%
@@ -109,7 +162,8 @@
 
 static bool parseXml(std::string_view input, std::vector<std::string_view>& attr_values,
   std::vector<std::string_view>& tag_values,
-  std::string& tag_values_str) {
+  std::string& tag_values_str,
+  std::forward_list<std::string> html_decode_buffer) {
 
   const char* p = input.data();
   const char* pe = p + input.size();
@@ -120,6 +174,9 @@ static bool parseXml(std::string_view input, std::vector<std::string_view>& attr
   int stack[16];
 
   bool error = false;
+  std::string_view last_tag_name;
+  const char* tag_value_start = nullptr;
+  size_t tag_value_len = 0;
 
   %% write init;
   %% write exec;

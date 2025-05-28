@@ -24,6 +24,7 @@
 #include <string_view>
 #include <vector>
 #include <iostream>
+#include <cstring>
 
 %%{
   machine html_entity_decode;
@@ -112,7 +113,7 @@
   
 %% write data;
 
-void emitNumericEntity(char** r, const std::string& entity_value, bool is_hex) {
+static void emitNumericEntity(char** r, const std::string& entity_value, bool is_hex) {
   try {
     if (is_hex) {
       **r = static_cast<char>(std::stoi(entity_value, nullptr, 16));

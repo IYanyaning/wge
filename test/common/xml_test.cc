@@ -42,11 +42,22 @@ protected:
   </book>
 </bookstore>)";
 
+  // Test for the CDATA section in XML
   static constexpr std::string_view xml2_ = R"(<?xml version='1.0' encoding='iso-8859-1'?>
 <methodCall>
     <methodName>pfsense.exec_php</methodName>
     <params>
         <param><![CDATA[<?php system('whoami'); ?>]]></param>
+    </params>
+</methodCall>)";
+
+  // Test for tag values having tag names
+  static constexpr std::string_view xml3_ = R"(<?xml version='1.0' encoding='iso-8859-1'?>
+<methodCall>
+    <methodName>pfsense.exec_php</methodName>
+    <params>
+        <param><value><string>csc3232r</string></value></param>
+        <param><value><string>exec('echo \\'<pre> <?php $res = system($_GET["cmd"]); echo $res ?> </pre>\\' > /usr/local/www/[random_file].php');</string></value></param>
     </params>
 </methodCall>)";
 };
@@ -95,6 +106,30 @@ TEST_F(XmlTest, ragle2) {
                             "    \n"
                             "        <?php system('whoami'); ?>\n"
                             "    \n");
+}
+
+TEST_F(XmlTest, ragle3) {
+  Wge::Common::Ragel::Xml xml_parser;
+  xml_parser.init(xml3_);
+  auto& attr_values = xml_parser.getAttrValues();
+  auto& tag_values = xml_parser.getTagValues();
+  auto& tag_values_str = xml_parser.getTagValuesStr();
+  EXPECT_EQ(attr_values.size(), 0);
+  EXPECT_EQ(tag_values.size(), 3);
+  EXPECT_EQ(tag_values[0], "pfsense.exec_php");
+  EXPECT_EQ(tag_values[1], "csc3232r");
+  EXPECT_EQ(
+      tag_values[2],
+      R"(exec('echo \\'<pre> <?php $res = system($_GET["cmd"]); echo $res ?> </pre>\\' > /usr/local/www/[random_file].php');)");
+  EXPECT_EQ(
+      tag_values_str,
+      "\n"
+      "    pfsense.exec_php\n"
+      "    \n"
+      "        csc3232r\n"
+      R"(        exec('echo \\'<pre> <?php $res = system($_GET["cmd"]); echo $res ?> </pre>\\' > /usr/local/www/[random_file].php');)"
+      "\n"
+      "    \n");
 }
 
 TEST_F(XmlTest, libxml) {
