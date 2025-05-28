@@ -203,9 +203,9 @@ public:
   const std::string& skipAfter() const { return skip_after_; }
   void skipAfter(std::string&& skip_after) { skip_after_ = std::move(skip_after); }
 
-  int chainIndex() const;
-  const Rule* parentRule() const;
-  const Rule* topRule() const;
+  int chainIndex() const { return chain_index_; }
+  const Rule* parentRule() const { return parent_rule_; }
+  const Rule* topRule() const { return top_rule_; }
 
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
