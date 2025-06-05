@@ -418,6 +418,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
         // The variable value is matched, evaluate next variable value
         i++;
         curr_transform_index = 0;
+        evaluated_value = nullptr;
       } else {
         // The variable value is not matched, evaluate the transformation and try to match again
         if (IS_STRING_VIEW_VARIANT(evaluated_value->variant_)) [[likely]] {
