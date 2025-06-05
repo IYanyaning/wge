@@ -18,19 +18,14 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include "replace_nulls.h"
 
-#include <string>
-
-#include "transform_base.h"
+#include <replace_nulls.h>
 
 namespace Wge {
 namespace Transformation {
-class ReplaceNulls : public TransformBase {
-  DECLARE_TRANSFORM_NAME(replaceNulls);
-
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-};
+bool ReplaceNulls::evaluate(std::string_view data, std::string& result) const {
+  return replaceNulls(data, result);
+}
 } // namespace Transformation
 } // namespace Wge

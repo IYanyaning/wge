@@ -21,16 +21,57 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
-#include "transform_base.h"
+// Replaces NUL bytes in input with space characters (ASCII 0x20).
+%%{
+  machine replace_nulls;
+  
+  action skip {}
 
-namespace Wge {
-namespace Transformation {
-class ReplaceNulls : public TransformBase {
-  DECLARE_TRANSFORM_NAME(replaceNulls);
+  action exec_transformation { 
+    result.resize(input.size());
+    r = result.data();
+    if(ts > input.data()){
+      memcpy(r, input.data(), ts - input.data());
+      r += ts - input.data();
+    }
+    p = ts;
+    fhold;
+    fgoto transformation;
+  }
 
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-};
-} // namespace Transformation
-} // namespace Wge
+  # prescan
+  main := |*
+    0x00 => exec_transformation;
+    any => skip;
+  *|;
+  
+  transformation := |*
+    0x00+ => {*r++ = 0x20; };
+    any => { *r++ = fc; };
+  *|;
+}%%
+
+%% write data;
+
+static bool replaceNulls(std::string_view input, std::string& result) {
+  result.clear();
+  char* r = nullptr;
+
+  const char* p = input.data();
+  const char* pe = p + input.size();
+  const char* eof = pe;
+  const char* ts, *te;
+  int cs,act;
+
+  %% write init;
+  %% write exec;
+
+  if(r) {
+    result.resize(r - result.data());
+    return true;
+  }
+
+  return false;
+}
