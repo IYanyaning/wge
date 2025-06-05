@@ -63,6 +63,28 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool liter
   compile(support_stream);
 }
 
+HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
+                       const std::vector<uint64_t>& ids, bool literal, bool som_leftmost,
+                       bool support_stream)
+    : db_(literal) {
+  assert(patterns.size() == ids.size());
+
+  unsigned int flag = HS_FLAG_CASELESS;
+  if (som_leftmost) {
+    flag |= HS_FLAG_SOM_LEFTMOST;
+  }
+  if (!literal) {
+    flag |= HS_FLAG_UTF8;
+  }
+  size_t i = 0;
+  for (; i < patterns.size() - 1; ++i) {
+    db_.expressions_.add({std::string(patterns[i]), flag, ids[i]}, false);
+  }
+  db_.expressions_.add({std::string(patterns[patterns.size() - 1]), flag, ids[i]}, true);
+
+  compile(support_stream);
+}
+
 HsDataBase::HsDataBase(std::ifstream& ifs, bool literal, bool som_leftmost, bool support_stream)
     : db_(literal) {
   if (db_.expressions_.load(ifs, true, som_leftmost, false)) {

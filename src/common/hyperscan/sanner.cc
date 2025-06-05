@@ -32,7 +32,7 @@ Scanner::Scanner(const std::shared_ptr<HsDataBase> hs_db) : hs_db_(hs_db) {
 }
 
 void Scanner::registMatchCallback(Scratch::MatchCallback cb, void* user_data) const {
-  // clone the main scratch space
+  // Clone the main scratch space
   if (!worker_scratch_) [[unlikely]] {
     worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
   }
@@ -43,7 +43,7 @@ void Scanner::registMatchCallback(Scratch::MatchCallback cb, void* user_data) co
 
 void Scanner::registPcreRemoveDuplicateCallback(Scratch::PcreRemoveDuplicateCallbak cb,
                                                 void* user_data) const {
-  // clone the main scratch space
+  // Clone the main scratch space
   if (!worker_scratch_) [[unlikely]] {
     worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
   }
@@ -52,19 +52,66 @@ void Scanner::registPcreRemoveDuplicateCallback(Scratch::PcreRemoveDuplicateCall
   worker_scratch_->pcre_remove_duplicate_cb_user_data_ = user_data;
 }
 
-void Scanner::blockScan(std::string_view data) const {
-  // clone the main scratch space
+void Scanner::blockScan(std::string_view data, ScanMode mode, Scratch::MatchCallback cb,
+                        void* user_data) const {
+  // Clone the main scratch space
   if (!worker_scratch_) [[unlikely]] {
     worker_scratch_ = std::make_unique<Scratch>(hs_db_->mainScratch());
   }
 
+  // Overwrite the match callback and user data
+  if (cb) {
+    std::swap(worker_scratch_->match_cb_, cb);
+    std::swap(worker_scratch_->match_cb_user_data_, user_data);
+  }
+
+  GreedyMatchCache greedy_match_cache;
   if (!data.empty()) [[likely]] {
     worker_scratch_->curr_match_data_ = data;
-    hs_error_t err =
-        ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
-                  worker_scratch_->block_scratch_, matchCallback, const_cast<Scanner*>(this));
+    hs_error_t err;
+    if (mode == ScanMode::GreedyAndGlobal || mode == ScanMode::Greedy) [[likely]] {
+      greedy_match_cache.reserve(64);
+      err = ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
+                      worker_scratch_->block_scratch_, greedyMatchCallback, &greedy_match_cache);
+    } else {
+      err = ::hs_scan(hs_db_->blockNative(), data.data(), data.length(), 0,
+                      worker_scratch_->block_scratch_, matchCallback, const_cast<Scanner*>(this));
+    }
     if (err != HS_SUCCESS && err != HS_SCAN_TERMINATED) [[unlikely]] {
       WGE_LOG_ERROR("block mode hs_scan error");
+    }
+  }
+
+  // Reset the match callback and user data
+  if (cb) {
+    std::swap(worker_scratch_->match_cb_, cb);
+    std::swap(worker_scratch_->match_cb_user_data_, user_data);
+  }
+
+  // Process the greedy match cache
+  if (mode == ScanMode::GreedyAndGlobal || mode == ScanMode::Greedy) {
+    for (const auto& [id, from_to_map] : greedy_match_cache) {
+      int cease = 0;
+      if (mode == ScanMode::GreedyAndGlobal) {
+        for (const auto& [from, to] : from_to_map) {
+          // Notify matched
+          cease = matchCallback(id, from, to, 0, const_cast<Scanner*>(this));
+          if (cease) {
+            break;
+          }
+        }
+      } else {
+        // Get the first match only
+        if (!from_to_map.empty()) [[likely]] {
+          auto first_match = from_to_map.begin();
+          cease = matchCallback(id, first_match->first, first_match->second, 0,
+                                const_cast<Scanner*>(this));
+        }
+      }
+
+      if (cease) {
+        break;
+      }
     }
   }
 }
@@ -186,6 +233,19 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
   }
 
   return cease;
+}
+
+int Scanner::greedyMatchCallback(unsigned int id, unsigned long long from, unsigned long long to,
+                                 unsigned int flags, void* user_data) {
+  GreedyMatchCache* match_cache = reinterpret_cast<GreedyMatchCache*>(user_data);
+
+  auto cache_iter = match_cache->try_emplace(id).first;
+  auto pos_iter = cache_iter->second.try_emplace(from).first;
+
+  // Update the to value if it is greater than the existing one
+  pos_iter->second = std::max(pos_iter->second, to);
+
+  return 0;
 }
 } // namespace Hyperscan
 } // namespace Common

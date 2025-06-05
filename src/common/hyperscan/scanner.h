@@ -41,14 +41,29 @@ public:
                                          void* user_data) const;
 
 public:
-  void blockScan(std::string_view data) const;
+  enum class ScanMode {
+    Normal,          // Normal scan
+    GreedyAndGlobal, // Greedy and global scan
+    Greedy           // Greedy scan
+  };
+
+  void blockScan(std::string_view data, ScanMode mode = ScanMode::Normal,
+                 Scratch::MatchCallback cb = nullptr, void* user_data = nullptr) const;
   void streamScanStart() const;
   void streamScan(std::string_view data) const;
   void streamScanStop() const;
 
 private:
+  using GreedyMatchCache = std::unordered_map<unsigned int,                          // id
+                                              std::unordered_map<unsigned long long, // from
+                                                                 unsigned long long  // to
+                                                                 >>;
+
+private:
   static int matchCallback(unsigned int id, unsigned long long from, unsigned long long to,
                            unsigned int flags, void* user_data);
+  static int greedyMatchCallback(unsigned int id, unsigned long long from, unsigned long long to,
+                                 unsigned int flags, void* user_data);
 
 private:
   static thread_local std::unique_ptr<Scratch> worker_scratch_;
