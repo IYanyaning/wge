@@ -162,10 +162,13 @@ public:
    * match successfully is the final result true.
    * @return true if the request is safe, false otherwise that means need to deny the request.
    */
-  bool processRequestHeaders(
-      HeaderFind request_header_find, HeaderTraversal request_header_traversal,
-      size_t request_header_count, std::function<void(const Rule&)> log_callback = nullptr,
-      std::function<bool(const Rule&, std::string_view)> additional_cond = nullptr);
+  bool
+  processRequestHeaders(HeaderFind request_header_find, HeaderTraversal request_header_traversal,
+                        size_t request_header_count,
+                        std::function<void(const Rule&)> log_callback = nullptr,
+                        std::function<bool(const Rule&, std::string_view,
+                                           const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+                            additional_cond = nullptr);
 
   /**
    * Process the request body.
@@ -177,7 +180,9 @@ public:
    */
   bool
   processRequestBody(std::string_view body, std::function<void(const Rule&)> log_callback = nullptr,
-                     std::function<bool(const Rule&, std::string_view)> additional_cond = nullptr);
+                     std::function<bool(const Rule&, std::string_view,
+                                        const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+                         additional_cond = nullptr);
 
   /**
    * Process the response headers.
@@ -195,7 +200,9 @@ public:
       std::string_view status_code, std::string_view protocol, HeaderFind response_header_find,
       HeaderTraversal response_header_traversal, size_t response_header_count,
       std::function<void(const Rule&)> log_callback = nullptr,
-      std::function<bool(const Rule&, std::string_view)> additional_cond = nullptr);
+      std::function<bool(const Rule&, std::string_view,
+                         const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+          additional_cond = nullptr);
 
   /**
    * Process the response body.
@@ -208,7 +215,9 @@ public:
   bool
   processResponseBody(std::string_view body,
                       std::function<void(const Rule&)> log_callback = nullptr,
-                      std::function<bool(const Rule&, std::string_view)> additional_cond = nullptr);
+                      std::function<bool(const Rule&, std::string_view,
+                                         const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+                          additional_cond = nullptr);
 
 public:
   /**
@@ -534,7 +543,9 @@ public:
 
   const Rule* currentEvaluateRule() const { return current_rule_; }
 
-  const std::function<bool(const Rule&, std::string_view)>& getAdditionalCond() const {
+  const std::function<bool(const Rule&, std::string_view,
+                           const std::unique_ptr<Wge::Variable::VariableBase>& var)>&
+  getAdditionalCond() const {
     return additional_cond_;
   }
 
@@ -566,7 +577,9 @@ private:
   std::vector<Common::EvaluateResults::Element> captured_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
-  std::function<bool(const Rule&, std::string_view)> additional_cond_;
+  std::function<bool(const Rule&, std::string_view,
+                     const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+      additional_cond_;
   std::array<std::variant<std::monostate, std::string, const Macro::MacroBase*>,
              static_cast<size_t>(PersistentStorage::Storage::Type::SizeOfType)>
       persistent_storage_keys_;

@@ -235,7 +235,8 @@ private:
                     const Common::EvaluateResults::Element& input,
                     Common::EvaluateResults::Element& output,
                     std::vector<const Transformation::TransformBase*>& transform_list) const;
-  inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value) const;
+  inline bool evaluateOperator(Transaction& t, const Common::Variant& var_value,
+                               const std::unique_ptr<Wge::Variable::VariableBase>& var) const;
   inline bool evaluateChain(Transaction& t) const;
   inline void evaluateMsgMacro(Transaction& t) const;
   inline void evaluateLogDataMacro(Transaction& t) const;

@@ -152,9 +152,9 @@ bool Rule::evaluate(Transaction& t) const {
 
       // Evaluate the operator
       if (transform_list.empty()) [[unlikely]] {
-        variable_matched = evaluateOperator(t, variable_value.variant_);
+        variable_matched = evaluateOperator(t, variable_value.variant_, var);
       } else {
-        variable_matched = evaluateOperator(t, transformed_value.variant_);
+        variable_matched = evaluateOperator(t, transformed_value.variant_, var);
       }
 
       // If the variable is matched, evaluate the actions
@@ -289,14 +289,15 @@ Rule::evaluateTransform(Transaction& t, const Wge::Variable::VariableBase* var,
   }
 }
 
-inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value) const {
+inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_value,
+                                   const std::unique_ptr<Wge::Variable::VariableBase>& var) const {
   bool matched = operator_->evaluate(t, var_value);
   matched = operator_->isNot() ^ matched;
 
   // Call additional conditions if they are defined
   if (matched && t.getAdditionalCond()) {
     if (IS_STRING_VIEW_VARIANT(var_value)) {
-      matched = t.getAdditionalCond()(*this, std::get<std::string_view>(var_value));
+      matched = t.getAdditionalCond()(*this, std::get<std::string_view>(var_value), var);
       WGE_LOG_TRACE("call additional condition: {}", matched);
     }
   }
@@ -393,7 +394,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
       }
 
       // Evaluate the operator
-      bool variable_matched = evaluateOperator(t, evaluated_value->variant_);
+      bool variable_matched = evaluateOperator(t, evaluated_value->variant_, var);
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {

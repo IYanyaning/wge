@@ -122,7 +122,9 @@ void Transaction::processUri(std::string_view uri, std::string_view method,
 bool Transaction::processRequestHeaders(
     HeaderFind request_header_find, HeaderTraversal request_header_traversal, size_t header_count,
     std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view)> additional_cond) {
+    std::function<bool(const Rule&, std::string_view,
+                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+        additional_cond) {
   WGE_LOG_TRACE("====process request headers====");
   extractor_.request_header_find_ = std::move(request_header_find);
   extractor_.request_header_traversal_ = std::move(request_header_traversal);
@@ -163,7 +165,9 @@ bool Transaction::processRequestHeaders(
 
 bool Transaction::processRequestBody(
     std::string_view body, std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view)> additional_cond) {
+    std::function<bool(const Rule&, std::string_view,
+                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+        additional_cond) {
   WGE_LOG_TRACE("====process request body====");
   request_body_ = body;
   log_callback_ = std::move(log_callback);
@@ -211,7 +215,9 @@ bool Transaction::processResponseHeaders(
     std::string_view status_code, std::string_view protocol, HeaderFind response_header_find,
     HeaderTraversal response_header_traversal, size_t response_header_count,
     std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view)> additional_cond) {
+    std::function<bool(const Rule&, std::string_view,
+                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+        additional_cond) {
   WGE_LOG_TRACE("====process response headers====");
   extractor_.response_header_find_ = std::move(response_header_find);
   extractor_.response_header_traversal_ = std::move(response_header_traversal);
@@ -232,7 +238,9 @@ bool Transaction::processResponseHeaders(
 
 bool Transaction::processResponseBody(
     std::string_view body, std::function<void(const Rule&)> log_callback,
-    std::function<bool(const Rule&, std::string_view)> additional_cond) {
+    std::function<bool(const Rule&, std::string_view,
+                       const std::unique_ptr<Wge::Variable::VariableBase>& var)>
+        additional_cond) {
   WGE_LOG_TRACE("====process response body====");
   response_body_ = body;
   log_callback_ = std::move(log_callback);
