@@ -652,44 +652,74 @@ ModeSecRuleActionSetUid_COLON: COLON -> type(COLON);
 
 mode ModeSecRuleActionT;
 ModeSecRuleActionT_COLON: COLON -> type(COLON);
-BASE64_DECODE: 'base64Decode' -> popMode;
-SQL_HEX_DECODE: 'sqlHexDecode' -> popMode;
-BASE64_DECODE_EXT: 'base64DecodeExt' -> popMode;
-BASE64_ENCODE: 'base64Encode' -> popMode;
-CMDLINE: 'cmdLine' -> popMode;
-COMPRESS_WHITESPACE: 'compressWhitespace' -> popMode;
-CSS_DECODE: 'cssDecode' -> popMode;
-ESCAPE_SEQ_DECODE: 'escapeSeqDecode' -> popMode;
-HEX_DECODE: 'hexDecode' -> popMode;
-HEX_ENCODE: 'hexEncode' -> popMode;
-HTML_ENTITY_DECODE: 'htmlEntityDecode' -> popMode;
-JS_DECODE: 'jsDecode' -> popMode;
-LENGTH: 'length' -> popMode;
-LOWERCASE: 'lowercase' -> popMode;
-MD5: 'md5' -> popMode;
-NONE: 'none' -> popMode;
-NORMALISE_PATH: 'normalisePath' -> popMode;
-NORMALIZE_PATH: 'normalizePath' -> popMode;
-NORMALISE_PATHWIN: 'normalisePathWin' -> popMode;
-NORMALIZE_PATHWIN: 'normalizePathWin' -> popMode;
-PARITY_EVEN_7BIT: 'parityEven7bit' -> popMode;
-PARITY_ODD_7BIT: 'parityOdd7bit' -> popMode;
-PARITY_ZERO_7BIT: 'parityZero7bit' -> popMode;
-REMOVE_NULLS: 'removeNulls' -> popMode;
-REMOVE_WHITESPACE: 'removeWhitespace' -> popMode;
-REPLACE_COMMENTS: 'replaceComments' -> popMode;
-REMOVE_COMMENTSCHAR: 'removeCommentsChar' -> popMode;
-REMOVE_COMMENTS: 'removeComments' -> popMode;
-REPLACE_NULLS: 'replaceNulls' -> popMode;
-URL_DECODE: 'urlDecode' -> popMode;
-UPPERCASE: 'uppercase' -> popMode;
-URL_DECODE_UNI: 'urlDecodeUni' -> popMode;
-URL_ENCODE: 'urlEncode' -> popMode;
-UTF8_TO_UNICODE: 'utf8toUnicode' -> popMode;
-SHA1: 'sha1' -> popMode;
-TRIM_LEFT: 'trimLeft' -> popMode;
-TRIM_RIGHT: 'trimRight' -> popMode;
-TRIM: 'trim' -> popMode;
+BASE64_DECODE:
+	[bB][aA][sS][eE]'64' [dD][eE][cC][oO][dD][eE] -> popMode;
+SQL_HEX_DECODE:
+	[sS][qQ][lL][hH][eE][xX][dD][eE][cC][oO][dD][eE] -> popMode;
+BASE64_DECODE_EXT:
+	[bB][aA][sS][eE]'64' [dD][eE][cC][oO][dD][eE][eE][xX][tT] -> popMode;
+BASE64_ENCODE:
+	[bB][aA][sS][eE]'64' [eE][nN][cC][oO][dD][eE] -> popMode;
+CMDLINE: [cC][mM][dD][lL][iI][nN][eE] -> popMode;
+COMPRESS_WHITESPACE:
+	[cC][oO][mM][pP][rR][eE][sS][sS][wW][hH][iI][tT][eE][sS][pP][aA][cC][eE] -> popMode;
+CSS_DECODE:
+	[cC][sS][sS][dD][eE][cC][oO][dD][eE] -> popMode;
+ESCAPE_SEQ_DECODE:
+	[eE][sS][cC][aA][pP][eE][sS][eE][qQ][dD][eE][cC][oO][dD][eE] -> popMode;
+HEX_DECODE:
+	[hH][eE][xX][dD][eE][cC][oO][dD][eE] -> popMode;
+HEX_ENCODE:
+	[hH][eE][xX][eE][nN][cC][oO][dD][eE] -> popMode;
+HTML_ENTITY_DECODE:
+	[hH][tT][mM][lL] [eE][nN][tT][iI][tT][yY][dD][eE][cC][oO][dD][eE] -> popMode;
+JS_DECODE: [jJ][sS][dD][eE][cC][oO][dD][eE] -> popMode;
+LENGTH: [lL][eE][nN][gG][tT][hH] -> popMode;
+LOWERCASE:
+	[lL][oO][wW][eE][rR][cC][aA][sS][eE] -> popMode;
+MD5: [mM][dD]'5' -> popMode;
+NONE: [nN][oO][nN][eE] -> popMode;
+NORMALISE_PATH:
+	[nN][oO][rR][mM][aA][lL][iI][sS][eE][pP][aA][tT][hH] -> popMode;
+NORMALIZE_PATH:
+	[nN][oO][rR][mM][aA][lL][iI][zZ][eE][pP][aA][tT][hH] -> popMode;
+NORMALISE_PATHWIN:
+	[nN][oO][rR][mM][aA][lL][iI][sS][eE][pP][aA][tT][hH][wW][iI][nN] -> popMode;
+NORMALIZE_PATHWIN:
+	[nN][oO][rR][mM][aA][lL][iI][zZ][eE][pP][aA][tT][hH][wW][iI][nN] -> popMode;
+PARITY_EVEN_7BIT:
+	[pP][aA][rR][iI][tT][yY][eE][vV][eE][nN]'7' [bB][iI][tT] -> popMode;
+PARITY_ODD_7BIT:
+	[pP][aA][rR][iI][tT][yY][oO][dD][dD]'7' [bB][iI][tT] -> popMode;
+PARITY_ZERO_7BIT:
+	[pP][aA][rR][iI][tT][yY][zZ][eE][rR][oO]'7' [bB][iI][tT] -> popMode;
+REMOVE_NULLS:
+	[rR][eE][mM][oO][vV][eE][nN][uU][lL][lL][sS] -> popMode;
+REMOVE_WHITESPACE:
+	[rR][eE][mM][oO][vV][eE][wW][hH][iI][tT][eE][sS][pP][aA][cC][eE] -> popMode;
+REPLACE_COMMENTS:
+	[rR][eE][pP][lL][aA][cC][eE][cC][oO][mM][mM][eE][nN][tT][sS] -> popMode;
+REMOVE_COMMENTSCHAR:
+	[rR][eE][mM][oO][vV][eE] [cC][oO][mM][mM][eE][nN][tT][sS][cC][hH][aA][rR] -> popMode;
+REMOVE_COMMENTS:
+	[rR][eE][mM][oO][vV][eE][cC][oO][mM][mM][eE][nN][tT][sS] -> popMode;
+REPLACE_NULLS:
+	[rR][eE][pP][lL][aA][cC][eE][nN][uU][lL][lL][sS] -> popMode;
+URL_DECODE:
+	[uU][rR][lL][dD][eE][cC][oO][dD][eE] -> popMode;
+UPPERCASE:
+	[uU][pP][pP][eE][rR][cC][aA][sS][eE] -> popMode;
+URL_DECODE_UNI:
+	[uU][rR][lL][dD][eE][cC][oO][dD][eE][uU][nN][iI] -> popMode;
+URL_ENCODE:
+	[uU][rR][lL][eE][nN][cC][oO][dD][eE] -> popMode;
+UTF8_TO_UNICODE:
+	[uU][tT][fF]'8' [tT][oO] [uU][nN][iI][cC][oO][dD][eE] -> popMode;
+SHA1: [sS][hH][aA]'1' -> popMode;
+TRIM_LEFT: [tT][rR][iI][mM][lL][eE][fF][tT] -> popMode;
+TRIM_RIGHT:
+	[tT][rR][iI][mM][rR][iI][gG][hH][tT] -> popMode;
+TRIM: [tT][rR][iI][mM] -> popMode;
 
 mode ModeSecRuleActionCtl;
 ModeSecRuleActionCtl_COLON: COLON -> type(COLON);
