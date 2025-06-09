@@ -36,7 +36,10 @@ private:                                                                        
 #define MACRO_EXPAND_STRING_VIEW(var)                                                              \
   Common::EvaluateResults result;                                                                  \
   macro_->evaluate(t, result);                                                                     \
-  std::string_view var = std::get<std::string_view>(result.front().variant_);
+  std::string_view var;                                                                            \
+  if (IS_STRING_VIEW_VARIANT(result.front().variant_)) [[likely]] {                                \
+    var = std::get<std::string_view>(result.front().variant_);                                     \
+  }
 
 #define MACRO_EXPAND_INT(var)                                                                      \
   Common::EvaluateResults result;                                                                  \
