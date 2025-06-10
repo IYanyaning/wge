@@ -217,10 +217,10 @@ int Scanner::matchCallback(unsigned int id, unsigned long long from, unsigned lo
       uint64_t new_from, new_to;
       std::vector<std::pair<size_t, size_t>> result;
       pcre.match(pcre_pattern, pcre_scan_data, result);
-      if (!result.empty()) [[likely]] {
+      for (auto [from, to] : result) [[likely]] {
         // Recalculate the offset
-        size_t new_from = result.front().first;
-        size_t new_to = result.front().second;
+        size_t new_from = from;
+        size_t new_to = to;
         from = pcre_scan_from + new_from;
         to = from + (new_to - new_from);
         cease = worker_scratch_->match_cb_(real_id, from, to, flags,
