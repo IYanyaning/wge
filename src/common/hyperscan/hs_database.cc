@@ -38,7 +38,8 @@ HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool som_leftmo
     flag |= HS_FLAG_SOM_LEFTMOST;
   }
   if (!db_.expressions_.literal()) {
-    flag |= HS_FLAG_UTF8;
+    flag |= HS_FLAG_DOTALL;
+    flag |= HS_FLAG_MULTILINE;
   }
   db_.expressions_.add({pattern, flag, 0}, prefilter, true);
   compile(support_stream);
@@ -52,7 +53,8 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool liter
     flag |= HS_FLAG_SOM_LEFTMOST;
   }
   if (!literal) {
-    flag |= HS_FLAG_UTF8;
+    flag |= HS_FLAG_DOTALL;
+    flag |= HS_FLAG_MULTILINE;
   }
   size_t i = 0;
   for (; i < patterns.size() - 1; ++i) {
@@ -74,7 +76,8 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
     flag |= HS_FLAG_SOM_LEFTMOST;
   }
   if (!literal) {
-    flag |= HS_FLAG_UTF8;
+    flag |= HS_FLAG_DOTALL;
+    flag |= HS_FLAG_MULTILINE;
   }
   size_t i = 0;
   for (; i < patterns.size() - 1; ++i) {
