@@ -39,7 +39,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool case_less, bool so
   }
 
   constexpr size_t max_character = 2048;
-  unsigned int flag = HS_FLAG_SINGLEMATCH;
+  unsigned int flag = 0;
 
   if (case_less) {
     flag |= HS_FLAG_CASELESS;

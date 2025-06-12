@@ -35,7 +35,7 @@ Scratch HsDataBase::main_scratch_;
 HsDataBase::HsDataBase(const std::string& pattern, bool literal, bool case_less, bool som_leftmost,
                        bool prefilter, bool support_stream, const char* serialize_dir)
     : db_(literal) {
-  unsigned int flag = HS_FLAG_SINGLEMATCH;
+  unsigned int flag = 0;
   if (case_less) {
     flag |= HS_FLAG_CASELESS;
   }
@@ -56,7 +56,7 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns, bool liter
                        bool som_leftmost, bool prefilter, bool support_stream,
                        const char* serialize_dir)
     : db_(literal) {
-  unsigned int flag = HS_FLAG_SINGLEMATCH;
+  unsigned int flag = 0;
   if (case_less) {
     flag |= HS_FLAG_CASELESS;
   }
@@ -83,7 +83,7 @@ HsDataBase::HsDataBase(const std::vector<std::string_view>& patterns,
     : db_(literal) {
   assert(patterns.size() == ids.size());
 
-  unsigned int flag = HS_FLAG_SINGLEMATCH;
+  unsigned int flag = 0;
   if (case_less) {
     flag |= HS_FLAG_CASELESS;
   }
