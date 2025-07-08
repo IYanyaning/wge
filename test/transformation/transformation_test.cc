@@ -980,12 +980,12 @@ TEST_F(TransformationTest, urlDecodeUni) {
   data = R"(%u4E2D%u6587)";
   ret = url_decode_uni.evaluate(data, result);
   EXPECT_TRUE(ret);
-  EXPECT_EQ(result, "\x2D\x87");
+  EXPECT_EQ(result, "\x20\x20");
 
-  data = R"(%u4E2D+%u6587%20%u4E2D+%u6587%20)";
+  data = R"(%u4E2D+%u6587%20%u4E2D+%u0087%20)";
   ret = url_decode_uni.evaluate(data, result);
   EXPECT_TRUE(ret);
-  EXPECT_EQ(result, "\x2D \x87 \x2D \x87 ");
+  EXPECT_EQ(result, "\x20 \x20 \x20 \x87 ");
 
   data = R"(%uff1cscript%uff1ealert(%uff07XSS%uff07);%uff1c/script%uff1e)";
   ret = url_decode_uni.evaluate(data, result);
