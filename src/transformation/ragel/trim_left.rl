@@ -19,15 +19,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #pragma once
+
+#include <string>
+#include <string_view>
+
 #include "src/transformation/stream_util.h"
 
 // clang-format off
 %%{
-  machine replace_comments;
+  machine trim_left;
 
-  action skip {}
-
-  action exec_transformation { 
+  action exec_transformation {
     result.resize(input.size());
     r = result.data();
     if(ts > input.data()){
@@ -39,40 +41,40 @@
     fgoto transformation;
   }
 
+  action skip {}
+
+  WS = [ \t\n\r\f\v];
+
   # prescan
   main := |*
-    '/*' => exec_transformation;
-    any => skip;
+    WS => exec_transformation;
+    any => { fbreak; };
   *|;
 
-  # transformation
   transformation := |*
-    '/*' => { *r++ = ' '; fgoto replace; };
-    any => { *r++ = fc; };
-  *|;
-
-  replace := |*
-    '*/' => { fgoto transformation; };
-    any => skip;
+    WS => skip;
+    any => { 
+      memcpy(r, ts, pe - ts);
+      r += pe - ts;
+      fbreak;   
+    };
   *|;
 }%%
-
 %% write data;
 // clang-format on
 
-static bool replaceComments(std::string_view input, std::string& result) {
+static bool trimLeft(std::string_view input, std::string& result) {
   result.clear();
   char* r = nullptr;
 
   const char* p = input.data();
-  const char* ps = p;
   const char* pe = p + input.size();
   const char* eof = pe;
   const char *ts, *te;
   int cs, act;
 
   // clang-format off
-	%% write init;
+  %% write init;
   %% write exec;
   // clang-format on
 
@@ -86,33 +88,40 @@ static bool replaceComments(std::string_view input, std::string& result) {
 
 // clang-format off
 %%{
-  machine replace_comments_stream;
+  machine trim_left_stream;
 
   action skip {}
 
+  WS = [ \t\n\r\f\v];
+
   main := |*
-    '/*' => { result += ' '; fgoto replace; };
-    any => { result += fc; };
+    WS => skip;
+    any => {
+      p = ts;
+      fhold;
+      fgoto copy;  
+    };
   *|;
 
-  replace := |*
-    '*/' => { fgoto main; };
-    any => skip;
+  copy := |*
+    any => {
+      result.append(ts, pe - ts);
+      fbreak;   
+    };
   *|;
 }%%
-
 %% write data;
 // clang-format on
 
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
-replaceCommentsNewStream() {
+trimLeftNewStream() {
   return std::make_unique<Wge::Transformation::StreamState>();
 }
 
-static Wge::Transformation::StreamResult
-replaceCommentsStream(std::string_view input, std::string& result,
-                      Wge::Transformation::StreamState& state, bool end_stream) {
+static Wge::Transformation::StreamResult trimLeftStream(std::string_view input, std::string& result,
+                                                        Wge::Transformation::StreamState& state,
+                                                        bool end_stream) {
   using namespace Wge::Transformation;
 
   // The stream is not valid

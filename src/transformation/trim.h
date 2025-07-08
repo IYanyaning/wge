@@ -30,30 +30,17 @@ class Trim : public TransformBase {
   DECLARE_TRANSFORM_NAME(trim);
 
 public:
-  bool evaluate(std::string_view data, std::string& result) const override {
-    result.clear();
+  bool evaluate(std::string_view data, std::string& result) const override;
+  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
+  StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
+                              Common::EvaluateResults::Element& output, StreamState& state,
+                              bool end_stream) const override;
 
-    if (data.empty()) {
-      return false;
-    }
-
-    constexpr auto white_space = " \t\n\r\f\v";
-
-    size_t start = data.find_first_not_of(white_space);
-
-    // The characters in the string are all spaces
-    if (start == std::string_view::npos) {
-      return true;
-    }
-
-    size_t end = data.find_last_not_of(white_space);
-    if (start == 0 && end == data.size() - 1) {
-      return false;
-    }
-
-    result.assign(data.substr(start, end - start + 1));
-    return true;
-  }
+private:
+  struct TrimStreamExtraState {
+    std::unique_ptr<StreamState, std::function<void(StreamState*)>> left_state_;
+    std::unique_ptr<StreamState, std::function<void(StreamState*)>> right_state_;
+  };
 };
 } // namespace Transformation
 } // namespace Wge

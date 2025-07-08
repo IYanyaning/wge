@@ -20,7 +20,10 @@
  */
 #pragma once
 
+#include <functional>
 #include <string>
+
+#include "stream_util.h"
 
 #include "../common/evaluate_result.h"
 #include "../transaction.h"
@@ -55,6 +58,18 @@ public:
   bool evaluate(Transaction& t, const Variable::VariableBase* variable,
                 const Common::EvaluateResults::Element& input,
                 Common::EvaluateResults::Element& output) const;
+
+  virtual std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const {
+    UNREACHABLE();
+    return nullptr;
+  }
+
+  virtual StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
+                                      Common::EvaluateResults::Element& output, StreamState& state,
+                                      bool end_stream) const {
+    UNREACHABLE();
+    return StreamResult::INVALID_INPUT;
+  }
 
   /**
    * Get the name of the transform.

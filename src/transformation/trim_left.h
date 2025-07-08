@@ -21,6 +21,7 @@
 #pragma once
 
 #include <string>
+#include <string_view>
 
 #include "transform_base.h"
 
@@ -30,29 +31,11 @@ class TrimLeft : public TransformBase {
   DECLARE_TRANSFORM_NAME(trimLeft);
 
 public:
-  bool evaluate(std::string_view data, std::string& result) const override {
-    result.clear();
-
-    if (data.empty()) {
-      return false;
-    }
-
-    constexpr auto white_space = " \t\n\r\f\v";
-
-    size_t start = data.find_first_not_of(white_space);
-
-    // The characters in the string are all spaces
-    if (start == std::string_view::npos) {
-      return true;
-    }
-
-    if (start == 0) {
-      return false;
-    }
-
-    result.assign(data.substr(start));
-    return true;
-  }
+  bool evaluate(std::string_view data, std::string& result) const override;
+  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
+  StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
+                              Common::EvaluateResults::Element& output, StreamState& state,
+                              bool end_stream) const override;
 };
 } // namespace Transformation
 } // namespace Wge

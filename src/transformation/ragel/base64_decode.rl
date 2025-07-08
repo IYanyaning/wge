@@ -20,8 +20,14 @@
  */
 #pragma once
 
+#include <algorithm>
+#include <memory>
 #include <string>
 #include <string_view>
+
+#include <assert.h>
+
+#include "src/transformation/stream_util.h"
 
 // clang-format off
 %%{
@@ -83,7 +89,7 @@ static bool base64Decode(std::string_view input, std::string& result) {
   const char *ts, *te;
   int cs, act;
 
-  int buffer = 0;
+  unsigned int buffer = 0;
   int count = 0;
 
   // clang-format off
@@ -91,18 +97,153 @@ static bool base64Decode(std::string_view input, std::string& result) {
   %% write exec;
   // clang-format on
 
-  if (!result.empty()) {
-    // Process remaining bytes
-    if (count == 2) {
-      *r++ = (buffer >> 4) & 0xFF;
-    } else if (count == 3) {
-      *r++ = (buffer >> 10) & 0xFF;
-      *r++ = (buffer >> 2) & 0xFF;
-    }
-
-    result.resize(r - result.data());
-    return true;
+  // Process remaining bytes
+  if (count == 2) {
+    *r++ = (buffer >> 4) & 0xFF;
+  } else if (count == 3) {
+    *r++ = (buffer >> 10) & 0xFF;
+    *r++ = (buffer >> 2) & 0xFF;
   }
 
-  return false;
+  result.resize(r - result.data());
+  return true;
+}
+
+// clang-format off
+%%{
+  machine base64_decode_stream;
+  
+  action skip {}
+
+  action decode_char {
+    extra_state->buffer_ = (extra_state->buffer_ << 6) | base64_table[fc];
+    extra_state->count_++;
+    if (extra_state->count_ == 4) {
+      result.reserve(result.size() + 3);
+      result += (extra_state->buffer_ >> 16) & 0xFF;
+      result += (extra_state->buffer_ >> 8) & 0xFF;
+      result += extra_state->buffer_ & 0xFF;
+      extra_state->buffer_ = 0;
+      extra_state->count_ = 0;
+    }
+  }
+
+  action stream_complete {
+    // Process remaining bytes
+    if (extra_state->count_ == 2) {
+      result += (extra_state->buffer_ >> 4) & 0xFF;
+    } else if (extra_state->count_ == 3) {
+      result += (extra_state->buffer_ >> 10) & 0xFF;
+      result += (extra_state->buffer_ >> 2) & 0xFF;
+    }
+    extra_state->buffer_ = 0;
+    extra_state->count_ = 0;
+    state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
+    fbreak;
+  }
+
+  main := |*
+    [+/0-9A-Za-z] => decode_char;
+    '=' => stream_complete;
+    any => skip;
+  *|;
+}%%
+
+%% write data;
+// clang-format on
+
+struct Base64DecodeExtraState {
+  unsigned int buffer_{0};
+  int count_{0};
+};
+
+static std::unique_ptr<Wge::Transformation::StreamState,
+                       std::function<void(Wge::Transformation::StreamState*)>>
+base64DecodeNewStream() {
+  return Wge::Transformation::newStreamWithExtraState<Base64DecodeExtraState>();
+}
+
+static Wge::Transformation::StreamResult base64DecodeStream(std::string_view input,
+                                                            std::string& result,
+                                                            Wge::Transformation::StreamState& state,
+                                                            bool end_stream) {
+  using namespace Wge::Transformation;
+
+  // The stream is not valid
+  if (state.state_.test(static_cast<size_t>(StreamState::State::INVALID)))
+    [[unlikely]] { return StreamResult::INVALID_INPUT; }
+
+  // The stream is complete, no more data to process
+  if (state.state_.test(static_cast<size_t>(StreamState::State::COMPLETE)))
+    [[unlikely]] { return StreamResult::SUCCESS; }
+
+  // In the stream mode, we can't operate the raw pointer of the result directly simular to the
+  // block mode since we can't guarantee reserve enough space in the result string. Instead, we
+  // will use the string's append method to add the transformed data. Although this is less
+  // efficient than using a raw pointer, it is necessary to ensure the safety of the stream
+  // processing.
+  result.reserve(result.size() + input.size());
+
+  const char* p = input.data();
+  const char* ps = p;
+  const char* pe = p + input.size();
+  const char* eof = end_stream ? pe : nullptr;
+  const char *ts, *te;
+  int cs, act;
+
+  auto* extra_state = reinterpret_cast<Base64DecodeExtraState*>(state.extra_state_buffer_.data());
+
+  // clang-format off
+  %% write init;
+
+  // Recover the state
+  if(state.cs_.has_value()) {
+    cs = state.cs_.value();
+  }
+  act = state.act_.value_or(0);
+  if(state.ts_offset_.has_value()) {
+    ts = ps + state.ts_offset_.value();
+  }
+  if(state.te_offset_.has_value()) {
+    te = ps + state.te_offset_.value();
+  }
+  
+  %% write exec;
+  // clang-format on
+
+  if (end_stream) {
+    if (extra_state->count_ == 2) {
+      result += (extra_state->buffer_ >> 4) & 0xFF;
+    } else if (extra_state->count_ == 3) {
+      result += (extra_state->buffer_ >> 10) & 0xFF;
+      result += (extra_state->buffer_ >> 2) & 0xFF;
+    }
+    state.state_.set(static_cast<size_t>(Wge::Transformation::StreamState::State::COMPLETE));
+    return StreamResult::SUCCESS;
+  } else {
+    state.cs_ = cs;
+    state.act_ = act;
+    state.ts_offset_.reset();
+    state.te_offset_.reset();
+
+    // If ts is not null, it means ragel in the middle of processing a pattern, we need to
+    // save the remaining data in the buffer for the next call.
+    if (ts) {
+      if (state.buffer_.empty()) {
+        state.buffer_.append(ts, pe);
+      }
+
+      // If ts is greater than ps, it means that the last pattern was matched complete,
+      // and next pattern is matched from ts now.
+      if (ts > ps) {
+        ps = ts;
+      }
+
+      state.ts_offset_ = ts - ps;
+      if (te) {
+        state.te_offset_ = te - ps;
+      }
+    }
+    return StreamResult::NEED_MORE_DATA;
+  }
 }

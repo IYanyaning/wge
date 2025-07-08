@@ -18,23 +18,29 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
+#include "length.h"
 
-#include <string>
-
-#include "transform_base.h"
+#include "src/transformation/stream_util.h"
 
 namespace Wge {
 namespace Transformation {
-class TrimRight : public TransformBase {
-  DECLARE_TRANSFORM_NAME(trimRight);
+std::unique_ptr<StreamState, std::function<void(StreamState*)>> Length::newStream() const {
+  auto state = std::make_unique<Wge::Transformation::StreamState>();
+  state->buffer_.resize(sizeof(size_t));
+  size_t* length = reinterpret_cast<size_t*>(state->buffer_.data());
+  *length = 0;
+  return state;
+}
 
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
-  StreamResult evaluateStream(const Common::EvaluateResults::Element& input,
-                              Common::EvaluateResults::Element& output, StreamState& state,
-                              bool end_stream) const override;
-};
+StreamResult Length::evaluateStream(const Common::EvaluateResults::Element& input,
+                                    Common::EvaluateResults::Element& output, StreamState& state,
+                                    bool end_stream) const {
+  size_t* length = reinterpret_cast<size_t*>(state.buffer_.data());
+  *length += std::get<std::string_view>(input.variant_).size();
+  output.string_buffer_ = std::to_string(*length);
+  output.variant_ = output.string_buffer_;
+
+  return end_stream ? StreamResult::SUCCESS : StreamResult::NEED_MORE_DATA;
+}
 } // namespace Transformation
 } // namespace Wge

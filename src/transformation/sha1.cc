@@ -20,8 +20,6 @@
  */
 #include "sha1.h"
 
-#include <iostream>
-
 #include <boost/algorithm/hex.hpp>
 #include <boost/uuid/detail/md5.hpp>
 #include <boost/uuid/detail/sha1.hpp>
@@ -32,10 +30,10 @@ bool Sha1::evaluate(std::string_view data, std::string& result) const {
   result.clear();
 
   // Process the data
-  boost::uuids::detail::sha1 sha1_;
-  sha1_.process_bytes(data.data(), data.length());
+  boost::uuids::detail::sha1 sha1;
+  sha1.process_bytes(data.data(), data.length());
   boost::uuids::detail::sha1::digest_type digest;
-  sha1_.get_digest(digest);
+  sha1.get_digest(digest);
 
   // Convert the digest to network byte order
   boost::uuids::detail::sha1::digest_type order;
@@ -49,8 +47,65 @@ bool Sha1::evaluate(std::string_view data, std::string& result) const {
 
   // Copy the digest to the result
   const auto char_digest = reinterpret_cast<const char*>(&order);
-  result.append(char_digest, sizeof(boost::uuids::detail::sha1::digest_type));
+  boost::algorithm::hex_lower(char_digest,
+                              char_digest + sizeof(boost::uuids::detail::sha1::digest_type),
+                              std::back_inserter(result));
   return true;
+}
+
+std::unique_ptr<StreamState, std::function<void(StreamState*)>> Sha1::newStream() const {
+  auto state = std::unique_ptr<StreamState, std::function<void(StreamState*)>>(
+      new StreamState(), [](StreamState* state) {
+        boost::uuids::detail::sha1* sha1 =
+            reinterpret_cast<boost::uuids::detail::sha1*>(state->extra_state_buffer_.data());
+        sha1->~sha1();
+        delete state;
+      });
+
+  state->extra_state_buffer_.resize(sizeof(boost::uuids::detail::sha1));
+  boost::uuids::detail::sha1* sha1 =
+      reinterpret_cast<boost::uuids::detail::sha1*>(state->extra_state_buffer_.data());
+  new (sha1) boost::uuids::detail::sha1();
+
+  return state;
+}
+
+StreamResult Sha1::evaluateStream(const Common::EvaluateResults::Element& input,
+                                  Common::EvaluateResults::Element& output, StreamState& state,
+                                  bool end_stream) const {
+  boost::uuids::detail::sha1* sha1 =
+      reinterpret_cast<boost::uuids::detail::sha1*>(state.extra_state_buffer_.data());
+
+  std::string_view input_data = std::get<std::string_view>(input.variant_);
+  sha1->process_bytes(input_data.data(), input_data.length());
+
+  if (end_stream) {
+    boost::uuids::detail::sha1::digest_type digest;
+    sha1->get_digest(digest);
+
+    // Convert the digest to network byte order
+    boost::uuids::detail::sha1::digest_type order;
+    memcpy(&order, &digest, sizeof(order));
+    for (size_t i = 0; i < sizeof(digest) / sizeof(int); ++i) {
+      for (size_t j = 0; j < sizeof(int); ++j) {
+        reinterpret_cast<char*>(&order[i])[j] =
+            reinterpret_cast<char*>(&digest[i])[sizeof(int) - j - 1];
+      }
+    }
+
+    // Copy the digest to the result
+    const auto char_digest = reinterpret_cast<const char*>(&order);
+    output.string_buffer_.clear();
+    boost::algorithm::hex_lower(char_digest,
+                                char_digest + sizeof(boost::uuids::detail::sha1::digest_type),
+                                std::back_inserter(output.string_buffer_));
+    output.variant_ = output.string_buffer_;
+
+    return StreamResult::SUCCESS;
+  } else {
+    output.variant_ = "";
+    return StreamResult::NEED_MORE_DATA;
+  }
 }
 } // namespace Transformation
 } // namespace Wge

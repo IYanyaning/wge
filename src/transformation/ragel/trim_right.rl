@@ -19,100 +19,90 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #pragma once
+
+#include <string>
+#include <string_view>
+
 #include "src/transformation/stream_util.h"
 
-// clang-format off
-%%{
-  machine replace_comments;
+// The Ragel does not support reverse traversal, so we implement the trim right function manually.
+static bool trimRight(std::string_view input, std::string& result) {
+  result.clear();
 
-  action skip {}
-
-  action exec_transformation { 
-    result.resize(input.size());
-    r = result.data();
-    if(ts > input.data()){
-      memcpy(r, input.data(), ts - input.data());
-      r += ts - input.data();
-    }
-    p = ts;
-    fhold;
-    fgoto transformation;
+  if (input.empty()) {
+    return false;
   }
 
-  # prescan
-  main := |*
-    '/*' => exec_transformation;
-    any => skip;
-  *|;
+  constexpr auto white_space = " \t\n\r\f\v";
 
-  # transformation
-  transformation := |*
-    '/*' => { *r++ = ' '; fgoto replace; };
-    any => { *r++ = fc; };
-  *|;
+  size_t pos = input.find_last_not_of(white_space);
 
-  replace := |*
-    '*/' => { fgoto transformation; };
-    any => skip;
-  *|;
-}%%
-
-%% write data;
-// clang-format on
-
-static bool replaceComments(std::string_view input, std::string& result) {
-  result.clear();
-  char* r = nullptr;
-
-  const char* p = input.data();
-  const char* ps = p;
-  const char* pe = p + input.size();
-  const char* eof = pe;
-  const char *ts, *te;
-  int cs, act;
-
-  // clang-format off
-	%% write init;
-  %% write exec;
-  // clang-format on
-
-  if (r) {
-    result.resize(r - result.data());
+  // The characters in the string are all spaces
+  if (pos == std::string_view::npos) {
     return true;
   }
 
-  return false;
+  if (pos == input.size() - 1) {
+    return false;
+  }
+
+  result = input.substr(0, pos + 1);
+
+  return true;
 }
 
 // clang-format off
 %%{
-  machine replace_comments_stream;
+  machine trim_right_stream;
 
   action skip {}
 
-  main := |*
-    '/*' => { result += ' '; fgoto replace; };
-    any => { result += fc; };
-  *|;
+  WS = [ \t\n\r\f\v];
 
-  replace := |*
-    '*/' => { fgoto main; };
-    any => skip;
+  main := |*
+    WS => { 
+      whitespace_count++; 
+      fgoto whitespace; 
+    };
+    any => {
+      result += fc;
+    };
+  *|;
+  
+  # In the whitespace state, we count the number of consecutive spaces.
+  # This is support infinite whitespace at the end of the stream. But the 
+  # all withspace characters will transformed to ' ' character.
+  whitespace := |*
+    WS => { whitespace_count++; };
+    any => {
+      result.append(whitespace_count, ' ');
+      result += fc;
+      whitespace_count = 0;
+      fgoto main;  
+    };
   *|;
 }%%
-
 %% write data;
 // clang-format on
 
+struct TrimRightStreamExtraState {
+  // The size of the processed data
+  size_t processed_size_{0};
+
+  // The count of consecutive spaces at the end of the stream
+  size_t consecutive_space_count_{0};
+};
+
 static std::unique_ptr<Wge::Transformation::StreamState,
                        std::function<void(Wge::Transformation::StreamState*)>>
-replaceCommentsNewStream() {
-  return std::make_unique<Wge::Transformation::StreamState>();
+trimRightNewStream() {
+  return Wge::Transformation::newStreamWithExtraState<TrimRightStreamExtraState>();
 }
 
-static Wge::Transformation::StreamResult
-replaceCommentsStream(std::string_view input, std::string& result,
-                      Wge::Transformation::StreamState& state, bool end_stream) {
+static Wge::Transformation::StreamResult trimRightStream(std::string_view input,
+                                                         std::string& result,
+                                                         Wge::Transformation::StreamState& state,
+                                                         bool end_stream) {
   using namespace Wge::Transformation;
 
   // The stream is not valid
@@ -136,6 +126,11 @@ replaceCommentsStream(std::string_view input, std::string& result,
   const char* eof = end_stream ? pe : nullptr;
   const char *ts, *te;
   int cs, act;
+
+  TrimRightStreamExtraState* extra_state =
+      reinterpret_cast<TrimRightStreamExtraState*>(state.extra_state_buffer_.data());
+
+  size_t& whitespace_count = extra_state->consecutive_space_count_;
 
   // clang-format off
   %% write init;
