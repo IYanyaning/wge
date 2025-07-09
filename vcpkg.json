@@ -9,6 +9,7 @@
     "libinjection",
     "libxml2",
     "boost-uuid",
-    "boost-unordered"
+    "boost-unordered",
+    "boost-interprocess"
   ]
 }
