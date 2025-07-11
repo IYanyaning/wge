@@ -65,13 +65,8 @@
       if(it != unicode_map_20127.end()) {
         value = it->second;
       }else {
-        // If not found, use lower 8 bits of the value if the high byte is zero
-        if((value & 0xff00) == 0) {
-          value &= 0xff;
-        } else {
-          // If the high byte is not zero, set to 0x20 (space)
-          value = 0x20;
-        }
+        // If not found, use lower 8 bits of the value
+        value &= 0xff;
 
         // Then convert the full-width character to half-width
         // This step is not necessary, because the unicode_map_20127 already contains the conversion. 
@@ -217,13 +212,8 @@ static bool urlDecodeUni(std::string_view input, std::string& result) {
       if(it != unicode_map_20127.end()) {
         value = it->second;
       }else {
-        // If not found, use lower 8 bits of the value if the high byte is zero
-        if((value & 0xff00) == 0) {
-          value &= 0xff;
-        } else {
-          // If the high byte is not zero, set to 0x20 (space)
-          value = 0x20;
-        }
+        // If not found, use lower 8 bits of the value
+        value &= 0xff;
 
         // Then convert the full-width character to half-width
         // This step is not necessary, because the unicode_map_20127 already contains the conversion. 

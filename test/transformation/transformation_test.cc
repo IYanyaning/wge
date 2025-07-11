@@ -553,8 +553,8 @@ TEST_F(TransformationTest, urlDecodeUni) {
       {true, "This%20is%20a%20test", "This is a test"},
       {true, "This+is+a+test", "This is a test"},
       {true, "%54%68is%20is%20a%20%74es%74", "This is a test"},
-      {true, "%u4E2D%u6587", "\x20\x20"},
-      {true, "%u4E2D+%u6587%20%u4E2D+%u0087%20", "\x20 \x20 \x20 \x87 "},
+      {true, "%u4E2D%u6587", "\x2D\x87"},
+      {true, "%u4E2D+%u6587%20%u4E2D+%u6587%20", "\x2D \x87 \x2D \x87 "},
       {true, "%uff1cscript%uff1ealert(%uff07XSS%uff07);%uff1c/script%uff1e",
        "<script>alert('XSS');</script>"}};
 
