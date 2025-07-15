@@ -251,13 +251,16 @@ TEST_F(RuleTest, RuleRemoveByTag) {
 }
 
 TEST_F(RuleTest, RuleUpdateActionById) {
-  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:'tag1',msg:'msg1'")";
+  const std::string rule_directive = R"(SecRule ARGS "bar" "id:1,tag:'tag1',msg:'msg1',chain"
+                                          SecRule ARGS "bar" "tag:'tag1',chain"
+                                            SecRule ARGS "bar" "tag:'tag1'")";
 
   Antlr4::Parser parser;
   auto result = parser.load(rule_directive);
   ASSERT_TRUE(result.has_value());
   EXPECT_EQ(parser.rules().back()->msg(), "msg1");
 
+  // Test overwrite
   {
     const std::string rule_update = R"(SecRuleUpdateActionById 1 "msg:'msg2'")";
     auto result = parser.load(rule_update);
@@ -265,6 +268,7 @@ TEST_F(RuleTest, RuleUpdateActionById) {
     EXPECT_EQ(parser.rules().back()->msg(), "msg2");
   }
 
+  // Test append
   {
     auto& tags = parser.rules().back()->tags();
     EXPECT_NE(tags.find("tag1"), tags.end());
@@ -279,6 +283,36 @@ TEST_F(RuleTest, RuleUpdateActionById) {
     EXPECT_NE(tags.find("tag1"), tags.end());
     EXPECT_NE(tags.find("tag2"), tags.end());
     EXPECT_NE(tags.find("tag3"), tags.end());
+  }
+
+  // Test chained rule
+  {
+    auto& tags1 = parser.rules().back()->chainRule(0).value()->get()->tags();
+    auto& tags2 = parser.rules().back()->chainRule(1).value()->get()->tags();
+    EXPECT_NE(tags1.find("tag1"), tags1.end());
+    EXPECT_NE(tags2.find("tag1"), tags2.end());
+    EXPECT_EQ(tags1.find("tag2"), tags1.end());
+    EXPECT_EQ(tags2.find("tag3"), tags2.end());
+
+    std::string rule_update = R"(SecRuleUpdateActionById 1:0 "msg:'msg3',tag:'tag2',tag:'tag3'")";
+    auto result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_NE(tags1.find("tag1"), tags1.end());
+    EXPECT_NE(tags1.find("tag2"), tags1.end());
+    EXPECT_NE(tags1.find("tag3"), tags1.end());
+    EXPECT_NE(tags2.find("tag1"), tags2.end());
+    EXPECT_EQ(tags2.find("tag2"), tags2.end());
+    EXPECT_EQ(tags2.find("tag3"), tags2.end());
+
+    rule_update = R"(SecRuleUpdateActionById 1:-1 "msg:'msg3',tag:'tag2',tag:'tag3'")";
+    result = parser.load(rule_update);
+    ASSERT_TRUE(result.has_value());
+    EXPECT_NE(tags1.find("tag1"), tags1.end());
+    EXPECT_NE(tags1.find("tag2"), tags1.end());
+    EXPECT_NE(tags1.find("tag3"), tags1.end());
+    EXPECT_NE(tags2.find("tag1"), tags2.end());
+    EXPECT_NE(tags2.find("tag2"), tags2.end());
+    EXPECT_NE(tags2.find("tag3"), tags2.end());
   }
 }
 

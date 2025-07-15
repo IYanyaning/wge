@@ -59,6 +59,7 @@ MINUS: '-';
 
 INT_RANGE: INT '-' INT;
 INT: [0-9]+;
+ID_AND_CHAIN_INDEX: INT ':' '-'? INT;
 OPTION: ('On' | 'Off');
 BODY_LIMIT_ACTION: ('Reject' | 'ProcessPartial');
 COMMENT: '#' ~[\r\n]* '\r'? '\n'? -> skip;
@@ -197,6 +198,8 @@ mode ModeRuleUpdateActionById;
 ModeRuleUpdateActionById_WS: WS -> skip;
 ModeRuleUpdateActionById_INT:
 	[0-9]+ -> type(INT), pushMode(ModeSecRuleAction);
+ModeRuleUpdateActionById_ID_AND_CHAIN_INDEX:
+	ID_AND_CHAIN_INDEX -> type(ID_AND_CHAIN_INDEX), pushMode(ModeSecRuleAction);
 
 mode ModeRuleUpdateTargetById;
 ModeRuleUpdateTargetById_WS: WS -> skip;
@@ -221,7 +224,8 @@ ModeRuleUpdateOperatorById_WS: WS -> skip;
 ModeRuleUpdateOperatorById_INT: INT -> type(INT);
 ModeRuleUpdateOperatorById_INT_RANGE:
 	INT_RANGE -> type(INT_RANGE);
-ID_AND_CHAIN_INDEX: INT ':' INT;
+ModeRuleUpdateOperatorById_ID_AND_CHAIN_INDEX:
+	ID_AND_CHAIN_INDEX -> type(ID_AND_CHAIN_INDEX);
 ModeRuleUpdateOperatorById_QUOTE:
 	QUOTE -> type(QUOTE), popMode, pushMode(ModeSecRuleOperator);
 

@@ -322,8 +322,27 @@ Visitor::visitSec_rule_remove_by_tag(Antlr4Gen::SecLangParser::Sec_rule_remove_b
 
 std::any Visitor::visitSec_rule_update_action_by_id(
     Antlr4Gen::SecLangParser::Sec_rule_update_action_by_idContext* ctx) {
-  uint64_t id = ::atoll(ctx->INT()->getText().c_str());
-  current_rule_iter_ = parser_->findRuleById(id);
+  uint64_t id = 0;
+  uint64_t chain_index = 0;
+  if (ctx->ID_AND_CHAIN_INDEX()) {
+    std::string id_and_chain_str = ctx->ID_AND_CHAIN_INDEX()->getText();
+    auto pos = id_and_chain_str.find(':');
+    if (pos != std::string::npos) {
+      id = ::atoll(id_and_chain_str.substr(0, pos).c_str());
+      chain_index = ::atoll(id_and_chain_str.substr(pos + 1).c_str());
+      current_rule_iter_ = parser_->findRuleById(id);
+      if (current_rule_iter_ != parser_->rules().end()) {
+        current_rule_iter_ =
+            (*current_rule_iter_)
+                ->chainRule(chain_index)
+                .value_or(const_cast<std::list<std::unique_ptr<Rule>>&>(parser_->rules()).end());
+      }
+    }
+  } else {
+    id = ::atoll(ctx->INT()->getText().c_str());
+    current_rule_iter_ = parser_->findRuleById(id);
+  }
+
   if (current_rule_iter_ != parser_->rules().end()) {
     // Visit actions
     visit_action_mode_ = VisitActionMode::SecRuleUpdateAction;
