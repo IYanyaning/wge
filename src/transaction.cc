@@ -491,6 +491,15 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_
       auto iter = remove_variables.find(full_name);
       if (iter != remove_variables.end())
         [[unlikely]] { return true; }
+      else {
+        // May be the ctl action remove the variable by the main name only, that means remove the
+        // whole collection
+        if (!full_name.sub_name_.empty()) {
+          iter = remove_variables.find({full_name.main_name_, ""});
+          if (iter != remove_variables.end())
+            [[unlikely]] { return true; }
+        }
+      }
     }
 
   return false;
