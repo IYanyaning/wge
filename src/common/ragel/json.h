@@ -42,7 +42,7 @@ public:
 
   void clear() {
     key_value_map_.clear();
-    key_value_map_.clear();
+    key_value_linked_.clear();
     escape_buffer_.clear();
   }
 
