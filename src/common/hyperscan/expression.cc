@@ -38,7 +38,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool case_less, bool so
     return false;
   }
 
-  constexpr size_t max_character = 2048;
+  // constexpr size_t max_character = 2048;
   unsigned int flag = HS_FLAG_SINGLEMATCH;
 
   if (case_less) {
@@ -61,11 +61,7 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool case_less, bool so
 
   std::string buffer;
   uint64_t id = 0;
-  while (!ifs.eof() && ifs.good()) {
-    buffer.resize(max_character);
-    ifs.getline(buffer.data(), max_character);
-    buffer.resize(ifs.gcount() == 0 ? 0 : ifs.gcount() - 1);
-
+  while (std::getline(ifs, buffer)) {
     if (buffer.empty()) {
       continue;
     }
