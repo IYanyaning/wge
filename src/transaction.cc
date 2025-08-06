@@ -510,13 +510,15 @@ void Transaction::pushMatchedVariable(
     Common::EvaluateResults::Element&& original_value,
     Common::EvaluateResults::Element&& transformed_value,
     std::list<const Transformation::TransformBase*>&& transform_list) {
+  auto& variables = matched_variables_.try_emplace(rule_chain_index, std::vector<MatchedVariable>())
+                        .first->second;
 
-  matched_variables_.emplace_back(variable, rule_chain_index, std::move(original_value),
-                                  std::move(transformed_value), std::move(transform_list));
-  if (IS_EMPTY_VARIANT(matched_variables_.back().transformed_value_.variant_))
+  variables.emplace_back(variable, std::move(original_value), std::move(transformed_value),
+                         std::move(transform_list));
+
+  if (IS_EMPTY_VARIANT(variables.back().transformed_value_.variant_))
     [[unlikely]] {
-      matched_variables_.back().transformed_value_.variant_ =
-          matched_variables_.back().original_value_.variant_;
+      variables.back().transformed_value_.variant_ = variables.back().original_value_.variant_;
     }
 }
 

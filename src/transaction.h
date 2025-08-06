@@ -101,11 +101,6 @@ public:
     // The matched variable
     const Variable::VariableBase* variable_;
 
-    // The chain index of the rule that matched variable
-    // -1: That means the rule is a top-level rule, not a chained rule.
-    // >= 0: The index of the rule in the chain based on zero-based index.
-    int rule_chain_index_;
-
     // The original value of the matched variable
     Common::EvaluateResults::Element original_value_;
 
@@ -115,12 +110,11 @@ public:
     // The list of transformations that applied to the matched variable
     std::list<const Transformation::TransformBase*> transform_list_;
 
-    MatchedVariable(const Variable::VariableBase* variable, int rule_chain_index,
+    MatchedVariable(const Variable::VariableBase* variable,
                     Common::EvaluateResults::Element&& original_value,
                     Common::EvaluateResults::Element&& transformed_value,
                     std::list<const Transformation::TransformBase*>&& transform_list)
-        : variable_(variable), rule_chain_index_(rule_chain_index),
-          original_value_(std::move(original_value)),
+        : variable_(variable), original_value_(std::move(original_value)),
           transformed_value_(std::move(transformed_value)),
           transform_list_(std::move(transform_list)) {}
   };
@@ -486,7 +480,15 @@ public:
    * Get the matched variables(MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES).
    * @return the matched variables.
    */
-  const std::vector<MatchedVariable>& getMatchedVariables() const { return matched_variables_; }
+  const std::vector<MatchedVariable>& getMatchedVariables(int rule_chain_index) const {
+    auto iter = matched_variables_.find(rule_chain_index);
+    if (iter != matched_variables_.end()) {
+      return iter->second;
+    }
+
+    static const std::vector<MatchedVariable> empty_vector;
+    return empty_vector;
+  }
 
   /**
    * Get the transformation cache.
@@ -627,7 +629,12 @@ private:
   // Current evaluation state
   int current_phase_{1};
   const Rule* current_rule_{nullptr};
-  std::vector<MatchedVariable> matched_variables_;
+
+  // Stores all matched variables organized by rule chain index.
+  // - Key: rule chain index (-1 for top-level rules, >=0 for chained rules)
+  // - Value: vector of all variables that matched within that specific rule
+  // Used by MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES variables.
+  std::unordered_map<int, std::vector<MatchedVariable>> matched_variables_;
   Common::EvaluateResults::Element msg_macro_expanded_;
   Common::EvaluateResults::Element log_data_macro_expanded_;
   boost::unordered_flat_map<TransformCacheKey, std::optional<Common::EvaluateResults::Element>,

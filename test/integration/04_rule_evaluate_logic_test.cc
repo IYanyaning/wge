@@ -86,7 +86,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
     EXPECT_EQ(std::get<int>(t->getVariable("test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
-    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo1=bar TX:foo1=bar");
+    EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar TX:foo1=bar");
     EXPECT_EQ(std::get<std::string_view>(t->getVariable("chain")), "true");
   }
 

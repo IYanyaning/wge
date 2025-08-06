@@ -33,9 +33,20 @@ public:
 
 public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
+    // If the current evaluate rule is a chained rule, we should get the matched variable from the
+    // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
+    // variable from the current rule.
+    int rule_chain_index = -1;
+    if (t.currentEvaluateRule()) {
+      rule_chain_index = t.currentEvaluateRule()->chainIndex();
+      if (rule_chain_index >= 0) {
+        rule_chain_index--;
+      }
+    }
+
     if (is_counter_)
       [[unlikely]] {
-        if (!t.getMatchedVariables().empty())
+        if (!t.getMatchedVariables(rule_chain_index).empty())
           [[likely]] { result.append(1); }
         else {
           result.append(0);
@@ -43,10 +54,10 @@ public:
         return;
       }
 
-    if (t.getMatchedVariables().empty())
+    if (t.getMatchedVariables(rule_chain_index).empty())
       [[unlikely]] { return; }
 
-    auto& matched_var = t.getMatchedVariables().back();
+    auto& matched_var = t.getMatchedVariables(rule_chain_index).back();
     result.append(matched_var.transformed_value_.variant_);
   }
 };

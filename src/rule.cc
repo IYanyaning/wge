@@ -171,7 +171,7 @@ bool Rule::evaluate(Transaction& t) const {
             return std::format("variable is matched. {}{}", var->mainName(),
                                var->subName().empty() ? "" : "." + var->subName());
           } else {
-            auto& matched_var = t.getMatchedVariables().back();
+            auto& matched_var = t.getMatchedVariables(chain_index_).back();
             return std::format("variable of collection is matched. {}:{}", var->mainName(),
                                matched_var.transformed_value_.variable_sub_name_);
           }
@@ -416,7 +416,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
             return std::format("variable is matched. {}{}", var->mainName(),
                                var->subName().empty() ? "" : "." + var->subName());
           } else {
-            auto& matched_var = t.getMatchedVariables().back();
+            auto& matched_var = t.getMatchedVariables(chain_index_).back();
             return std::format("variable of collection is matched. {}:{}", var->mainName(),
                                matched_var.transformed_value_.variable_sub_name_);
           }
