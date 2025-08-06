@@ -506,21 +506,13 @@ bool Transaction::isRuleTargetRemoved(const Rule* rule, Variable::FullName full_
 }
 
 void Transaction::pushMatchedVariable(
-    const Variable::VariableBase* variable, Common::EvaluateResults::Element&& original_value,
+    const Variable::VariableBase* variable, int rule_chain_index,
+    Common::EvaluateResults::Element&& original_value,
     Common::EvaluateResults::Element&& transformed_value,
     std::list<const Transformation::TransformBase*>&& transform_list) {
-  // Fixes #27
-  // When the MATCHED_VARS, MATCHED_VARS_NAMES, MATCHED_VAR,MATCHED_VAR_NAME  are evaluated, the
-  // operators should not automatically store the matched variables again.
-  std::string_view var_main_name = variable->mainName();
-  if (var_main_name == Variable::MatchedVars::main_name_ ||
-      var_main_name == Variable::MatchedVarsNames::main_name_ ||
-      var_main_name == Variable::MatchedVar::main_name_ ||
-      var_main_name == Variable::MatchedVarName::main_name_)
-    [[unlikely]] { return; }
 
-  matched_variables_.emplace_back(variable, std::move(original_value), std::move(transformed_value),
-                                  std::move(transform_list));
+  matched_variables_.emplace_back(variable, rule_chain_index, std::move(original_value),
+                                  std::move(transformed_value), std::move(transform_list));
   if (IS_EMPTY_VARIANT(matched_variables_.back().transformed_value_.variant_))
     [[unlikely]] {
       matched_variables_.back().transformed_value_.variant_ =

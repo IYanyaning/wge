@@ -98,16 +98,29 @@ public:
 
   // For the MATCHED_VAR_NAME, MATCHED_VAR, MATCHED_VARS_NAMES, MATCHED_VARS
   struct MatchedVariable {
+    // The matched variable
     const Variable::VariableBase* variable_;
+
+    // The chain index of the rule that matched variable
+    // -1: That means the rule is a top-level rule, not a chained rule.
+    // >= 0: The index of the rule in the chain based on zero-based index.
+    int rule_chain_index_;
+
+    // The original value of the matched variable
     Common::EvaluateResults::Element original_value_;
+
+    // The transformed value of the matched variable
     Common::EvaluateResults::Element transformed_value_;
+
+    // The list of transformations that applied to the matched variable
     std::list<const Transformation::TransformBase*> transform_list_;
 
-    MatchedVariable(const Variable::VariableBase* variable,
+    MatchedVariable(const Variable::VariableBase* variable, int rule_chain_index,
                     Common::EvaluateResults::Element&& original_value,
                     Common::EvaluateResults::Element&& transformed_value,
                     std::list<const Transformation::TransformBase*>&& transform_list)
-        : variable_(variable), original_value_(std::move(original_value)),
+        : variable_(variable), rule_chain_index_(rule_chain_index),
+          original_value_(std::move(original_value)),
           transformed_value_(std::move(transformed_value)),
           transform_list_(std::move(transform_list)) {}
   };
@@ -458,9 +471,13 @@ public:
    * Add a matched variable.
    * Use for MATCHED_VAR, MATCHED_VARS, MATCHED_VAR_NAME, MATCHED_VARS_NAMES.
    * @param variable the matched variable.
+   * @param rule_chain_index the chain index of the rule that matched this variable.
+   * @param original_value the original value of the matched variable.
+   * @param transformed_value the transformed value of the matched variable.
+   * @param transform_list the list of transformations that applied to the matched variable.
    * @param result the result of the matched variable.
    */
-  void pushMatchedVariable(const Variable::VariableBase* variable,
+  void pushMatchedVariable(const Variable::VariableBase* variable, int rule_chain_index,
                            Common::EvaluateResults::Element&& original_value,
                            Common::EvaluateResults::Element&& transformed_value,
                            std::list<const Transformation::TransformBase*>&& transform_list);

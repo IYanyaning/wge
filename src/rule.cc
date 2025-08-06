@@ -164,7 +164,7 @@ bool Rule::evaluate(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        t.pushMatchedVariable(var.get(), result.move(i), std::move(transformed_value),
+        t.pushMatchedVariable(var.get(), chain_index_, result.move(i), std::move(transformed_value),
                               std::move(transform_list));
         WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
@@ -409,7 +409,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
 
       // If the variable is matched, evaluate the actions
       if (variable_matched) {
-        t.pushMatchedVariable(var.get(), result.move(i), std::move(transformed_value),
+        t.pushMatchedVariable(var.get(), chain_index_, result.move(i), std::move(transformed_value),
                               std::move(transform_list));
         WGE_LOG_TRACE([&]() {
           if (!var->isCollection()) {
