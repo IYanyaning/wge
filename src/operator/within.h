@@ -121,7 +121,7 @@ public:
       value.string_buffer_ =
           std::string_view(operand_str.data() + result.first, result.second - result.first);
       value.variant_ = value.string_buffer_;
-      t.setCapture(0, std::move(value));
+      t.setTempCapture(0, std::move(value));
     }
 
     return matched;

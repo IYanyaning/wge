@@ -44,17 +44,21 @@ public:
           [[likely]] {
             matched =
                 std::get<std::string_view>(operand).find(literal_value_) != std::string_view::npos;
-            Common::EvaluateResults::Element value;
-            value.variant_ = literal_value_;
-            t.setCapture(0, std::move(value));
+            if (matched) {
+              Common::EvaluateResults::Element value;
+              value.variant_ = literal_value_;
+              t.setTempCapture(0, std::move(value));
+            }
           }
         else {
           MACRO_EXPAND_STRING_VIEW(macro_value);
           matched = std::get<std::string_view>(operand).find(macro_value) != std::string_view::npos;
-          Common::EvaluateResults::Element value;
-          value.string_buffer_ = macro_value;
-          value.variant_ = value.string_buffer_;
-          t.setCapture(0, std::move(value));
+          if (matched) {
+            Common::EvaluateResults::Element value;
+            value.string_buffer_ = macro_value;
+            value.variant_ = value.string_buffer_;
+            t.setTempCapture(0, std::move(value));
+          }
         }
       }
 

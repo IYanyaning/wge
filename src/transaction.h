@@ -356,13 +356,26 @@ public:
   bool hasVariable(const std::string& name) const;
 
   /**
-   * Sets a string that is captured by the operator.
+   * Sets a temporary string that is captured by the operator. After calling this method, we should
+   * call mergeCapture() to merge the temporary captured strings into the main captured strings,
+   * then we can use getCapture() to get the captured strings.
    * @param index the index of the matched string. The range is [0, 99].
    * @param value the matched value
    * @note the maximum number of matched strings is 100. if greater than 100, the value will be
    * ignored.
    */
-  void setCapture(size_t index, Common::EvaluateResults::Element&& value);
+  void setTempCapture(size_t index, Common::EvaluateResults::Element&& value);
+
+  /**
+   * Clear the temporary captured strings.
+   */
+  void clearTempCapture() { temp_captured_.clear(); }
+
+  /**
+   * Merge the temporary captured strings into the main captured strings.
+   * After calling this method, we can use getCapture() to get the captured strings.
+   */
+  void mergeCapture();
 
   /**
    * Get the captured string that is captured by the operator.
@@ -608,6 +621,7 @@ private:
   const size_t literal_key_size_;
   static constexpr int max_capture_size_{100};
   std::vector<Common::EvaluateResults::Element> captured_;
+  std::vector<Common::EvaluateResults::Element> temp_captured_;
   static const RandomInitHelper random_init_helper_;
   std::function<void(const Rule&)> log_callback_;
   std::function<bool(const Rule&, std::string_view,

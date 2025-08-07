@@ -34,7 +34,7 @@ bool DetectXSS::evaluate(Transaction& t, const Common::Variant& operand) const {
     Common::EvaluateResults::Element value;
     value.string_buffer_ = data;
     value.variant_ = value.string_buffer_;
-    t.setCapture(0, std::move(value));
+    t.setTempCapture(0, std::move(value));
   }
 
   return is_xss;

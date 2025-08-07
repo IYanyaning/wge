@@ -97,7 +97,7 @@ public:
       Common::EvaluateResults::Element value;
       value.string_buffer_ = std::string_view(operand_str.data() + from, to - from);
       value.variant_ = value.string_buffer_;
-      t.setCapture(capture_index++, std::move(value));
+      t.setTempCapture(capture_index++, std::move(value));
     }
 
     return !result.empty();

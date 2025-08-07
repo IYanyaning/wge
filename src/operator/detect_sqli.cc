@@ -37,7 +37,7 @@ bool DetectSqli::evaluate(Transaction& t, const Common::Variant& operand) const 
     Common::EvaluateResults::Element value;
     value.string_buffer_ = std::string(fingerprint, sizeof(fingerprint));
     value.variant_ = value.string_buffer_;
-    t.setCapture(0, std::move(value));
+    t.setTempCapture(0, std::move(value));
   }
 
   return is_sqli;

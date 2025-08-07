@@ -310,6 +310,12 @@ inline bool Rule::evaluateOperator(Transaction& t, const Common::Variant& var_va
     }
   }
 
+  if (matched) {
+    t.mergeCapture();
+  } else {
+    t.clearTempCapture();
+  }
+
   WGE_LOG_TRACE("evaluate operator: {} {}@{} {} = {}", VISTIT_VARIANT_AS_STRING(var_value),
                 operator_->isNot() ? "!" : "", operator_->name(),
                 operator_->macro() ? operator_->macro()->literalValue() : operator_->literalValue(),

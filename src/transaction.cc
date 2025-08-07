@@ -48,6 +48,7 @@ Transaction::Transaction(const Engine& engin, size_t literal_key_size)
   local_tx_variable_index_.reserve(variable_key_with_macro_size);
   local_tx_variable_index_reverse_.reserve(variable_key_with_macro_size);
   captured_.reserve(4);
+  temp_captured_.reserve(4);
   matched_variables_.reserve(4);
   transform_cache_.reserve(100);
   assert(tx_variables_.capacity() == literal_key_size + variable_key_with_macro_size);
@@ -401,14 +402,28 @@ bool Transaction::hasVariable(const std::string& name) const {
   return index.has_value() && hasVariable(index.value());
 }
 
-void Transaction::setCapture(size_t index, Common::EvaluateResults::Element&& value) {
+void Transaction::setTempCapture(size_t index, Common::EvaluateResults::Element&& value) {
   if (index < max_capture_size_)
     [[likely]] {
-      if (captured_.size() <= index) {
-        captured_.resize(index + 1);
+      if (temp_captured_.size() <= index) {
+        temp_captured_.resize(index + 1);
       }
-      captured_[index] = std::move(value);
+      temp_captured_[index] = std::move(value);
     }
+}
+
+void Transaction::mergeCapture() {
+  // Merge the temp_captured_ into captured_
+  if (!temp_captured_.empty()) {
+    if (temp_captured_.size() >= captured_.size()) {
+      captured_.swap(temp_captured_);
+    } else {
+      for (size_t i = 0; i < temp_captured_.size(); ++i) {
+        captured_[i] = std::move(temp_captured_[i]);
+      }
+    }
+    temp_captured_.clear();
+  }
 }
 
 const Common::Variant& Transaction::getCapture(size_t index) const {
