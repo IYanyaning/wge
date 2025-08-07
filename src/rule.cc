@@ -329,7 +329,14 @@ inline bool Rule::evaluateChain(Transaction& t) const {
   if (!chain_.empty()) {
     WGE_LOG_TRACE("evaluate chained rule. id: {}", chain_.front()->id());
     WGE_LOG_TRACE("↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓↓");
+
+    // Set the chained rule as the current evaluate rule
+    t.setCurrentEvaluateRule(chain_.front().get());
+
     matched = chain_.front()->evaluate(t);
+
+    // Restore the current rule to the transaction
+    t.setCurrentEvaluateRule(this);
   }
 
   return matched;

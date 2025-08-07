@@ -587,7 +587,8 @@ public:
     persistent_storage_keys_[static_cast<size_t>(type)] = key;
   }
 
-  const Rule* currentEvaluateRule() const { return current_rule_; }
+  const Rule* getCurrentEvaluateRule() const { return current_rule_; }
+  void setCurrentEvaluateRule(const Rule* rule) { current_rule_ = rule; }
 
   const std::function<bool(const Rule&, std::string_view,
                            const std::unique_ptr<Wge::Variable::VariableBase>& var)>&

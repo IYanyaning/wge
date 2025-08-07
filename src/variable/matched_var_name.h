@@ -37,8 +37,8 @@ public:
     // parent rule. If the current evaluate rule is not a chained rule, we should get the matched
     // variable from the current rule.
     int rule_chain_index = -1;
-    if (t.currentEvaluateRule()) {
-      rule_chain_index = t.currentEvaluateRule()->chainIndex();
+    if (t.getCurrentEvaluateRule()) {
+      rule_chain_index = t.getCurrentEvaluateRule()->chainIndex();
       if (rule_chain_index >= 0) {
         rule_chain_index--;
       }

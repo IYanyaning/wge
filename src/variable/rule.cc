@@ -31,25 +31,25 @@ void Rule::initEvaluateFunc() {
           {"id",
            [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
-               result.append(t.currentEvaluateRule()->id() == 0 ? 0 : 1);
+               result.append(t.getCurrentEvaluateRule()->id() == 0 ? 0 : 1);
                return;
              }
 
-             result.append(static_cast<int>(t.currentEvaluateRule()->id()), "id");
+             result.append(static_cast<int>(t.getCurrentEvaluateRule()->id()), "id");
            }},
           {"phase",
            [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
-               result.append(t.currentEvaluateRule()->phase() == -1 ? 0 : 1);
+               result.append(t.getCurrentEvaluateRule()->phase() == -1 ? 0 : 1);
                return;
              }
 
-             result.append(t.currentEvaluateRule()->phase(), "phase");
+             result.append(t.getCurrentEvaluateRule()->phase(), "phase");
            }},
           {"operator_value", [](Transaction& t, Common::EvaluateResults& result, bool is_count) {
              if (is_count) {
-               if (t.currentEvaluateRule()->getOperator()->literalValue().empty() &&
-                   t.currentEvaluateRule()->getOperator()->macro() == nullptr) {
+               if (t.getCurrentEvaluateRule()->getOperator()->literalValue().empty() &&
+                   t.getCurrentEvaluateRule()->getOperator()->macro() == nullptr) {
                  result.append(0, "operator_value");
                } else {
                  result.append(1, "operator_value");
@@ -58,8 +58,8 @@ void Rule::initEvaluateFunc() {
                return;
              }
 
-             if (!t.currentEvaluateRule()->getOperator()->literalValue().empty()) {
-               result.append(t.currentEvaluateRule()->getOperator()->literalValue(),
+             if (!t.getCurrentEvaluateRule()->getOperator()->literalValue().empty()) {
+               result.append(t.getCurrentEvaluateRule()->getOperator()->literalValue(),
                              "operator_value");
              }
            }}};
