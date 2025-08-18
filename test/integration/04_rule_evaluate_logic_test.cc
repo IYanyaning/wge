@@ -52,7 +52,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
 
     bool matched = false;
     t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
-    EXPECT_EQ(std::get<int>(t->getVariable("test")), 3);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
     EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar TX:foo1=bar");
@@ -83,7 +83,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
 
     bool matched = false;
     t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
-    EXPECT_EQ(std::get<int>(t->getVariable("test")), 3);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=3");
     EXPECT_EQ(t->getLogDataMacroExpanded(), "TX:foo4=bar TX:foo1=bar");
@@ -116,7 +116,7 @@ TEST(RuleEvaluateLogicTest, evluateLogic) {
 
     bool matched = false;
     t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
-    EXPECT_EQ(std::get<int>(t->getVariable("test")), 3);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 3);
     EXPECT_FALSE(matched);
     EXPECT_TRUE(t->getMsgMacroExpanded().empty());
     EXPECT_TRUE(t->getLogDataMacroExpanded().empty());
@@ -147,7 +147,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
 
     bool matched = false;
     t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
-    EXPECT_EQ(std::get<int>(t->getVariable("test")), 4);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 4);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=4");
     // The first matched variable is TX:foo3, and last matched variable is TX:foo4.
@@ -177,7 +177,7 @@ TEST(RuleEvaluateLogicTest, exceptVariable) {
 
     bool matched = false;
     t->processRequestHeaders(nullptr, nullptr, 0, [&](const Rule& rule) { matched = true; });
-    EXPECT_EQ(std::get<int>(t->getVariable("test")), 4);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("test")), 4);
     EXPECT_TRUE(matched);
     EXPECT_EQ(t->getMsgMacroExpanded(), "tx.test=4");
     // The first matched variable is TX:foo3, and last matched variable is TX:foo4.

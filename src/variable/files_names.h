@@ -41,10 +41,10 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(filename.size())); },
+        { result.append(static_cast<int64_t>(filename.size())); },
         // specify subname
         {
-          int count = filename_map.count(sub_name_);
+          int64_t count = filename_map.count(sub_name_);
           result.append(count);
         });
 

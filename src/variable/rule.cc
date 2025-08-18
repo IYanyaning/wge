@@ -35,7 +35,7 @@ void Rule::initEvaluateFunc() {
                return;
              }
 
-             result.append(static_cast<int>(t.getCurrentEvaluateRule()->id()), "id");
+             result.append(static_cast<int64_t>(t.getCurrentEvaluateRule()->id()), "id");
            }},
           {"phase",
            [](Transaction& t, Common::EvaluateResults& result, bool is_count) {

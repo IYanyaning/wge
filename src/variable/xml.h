@@ -75,9 +75,9 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(kv_pairs->size())); },
+        { result.append(static_cast<int64_t>(kv_pairs->size())); },
         // specify subname
-        { result.append(static_cast<int>(kv_pairs->size())); });
+        { result.append(static_cast<int64_t>(kv_pairs->size())); });
 
     switch (type_) {
     case Type::AttrValue: {

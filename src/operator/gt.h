@@ -42,7 +42,7 @@ public:
     if (!IS_INT_VARIANT(operand))
       [[unlikely]] { return false; }
 
-    int64_t operand_value = std::get<int>(operand);
+    int64_t operand_value = std::get<int64_t>(operand);
     if (!macro_)
       [[likely]] { return operand_value > value_; }
     else {

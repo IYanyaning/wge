@@ -45,7 +45,7 @@ void SetEnv::evaluate(Transaction& t) const {
     Common::EvaluateResults result;
     macro_->evaluate(t, result);
     if (IS_INT_VARIANT(result.front().variant_)) {
-      ::setenv(key_.c_str(), std::to_string(std::get<int>(result.front().variant_)).c_str(), 1);
+      ::setenv(key_.c_str(), std::to_string(std::get<int64_t>(result.front().variant_)).c_str(), 1);
     } else if (IS_STRING_VIEW_VARIANT(result.front().variant_)) {
       std::string value_str(std::get<std::string_view>(result.front().variant_));
       ::setenv(key_.c_str(), value_str.c_str(), 1);

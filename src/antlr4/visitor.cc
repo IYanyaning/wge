@@ -1370,7 +1370,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_create_init(
         ctx->action_non_disruptive_setvar_create_init_value()->VAR_VALUE().front()->getText();
     Common::Variant variant;
     if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
-      value_variant = ::atoi(value_string.c_str());
+      value_variant = ::atoll(value_string.c_str());
     } else {
       value_variant = value_string;
     }
@@ -1452,7 +1452,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_increase(
     std::string value_string = ctx->VAR_VALUE()->getText();
     Common::Variant variant;
     if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
-      value_variant = ::atoi(value_string.c_str());
+      value_variant = ::atoll(value_string.c_str());
     } else {
       value_variant = value_string;
     }
@@ -1508,7 +1508,7 @@ std::any Visitor::visitAction_non_disruptive_setvar_decrease(
     std::string value_string = ctx->VAR_VALUE()->getText();
     Common::Variant variant;
     if (std::all_of(value_string.begin(), value_string.end(), ::isdigit)) {
-      value_variant = ::atoi(value_string.c_str());
+      value_variant = ::atoll(value_string.c_str());
     } else {
       value_variant = value_string;
     }

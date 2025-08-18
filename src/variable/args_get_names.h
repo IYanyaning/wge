@@ -42,10 +42,10 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(query_params.size())); },
+        { result.append(static_cast<int64_t>(query_params.size())); },
         // specify subname
         {
-          int count = query_params_map.count(sub_name_);
+          int64_t count = query_params_map.count(sub_name_);
           result.append(count);
         });
 

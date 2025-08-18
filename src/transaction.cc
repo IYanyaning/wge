@@ -262,7 +262,7 @@ void Transaction::setVariable(size_t index, const Common::Variant& value) {
   if (index < tx_variables_.size()) {
     auto& tx_variable = tx_variables_[index];
     if (IS_INT_VARIANT(value))
-      [[likely]] { tx_variable.variant_ = std::get<int>(value); }
+      [[likely]] { tx_variable.variant_ = std::get<int64_t>(value); }
     else if (IS_STRING_VIEW_VARIANT(value)) {
       // The tx_variables_ store the value as a variant(std::string_view), and it will be invalid
       // if it's reference is invalid. So we copy the value to the string_buffer_. The
@@ -270,7 +270,7 @@ void Transaction::setVariable(size_t index, const Common::Variant& value) {
       // transaction is destroyed. Why we don't let the Common::Variant store the value as a
       // std::string? If we do it, it seems that we don't need the string_buffer_ anymore. But
       // it will cause code diffcult to maintain. Because the Common::Variant is a variant of
-      // std::monostate, int, std::string_view. If we add a new std::sting type, we must process
+      // std::monostate, int64_t, std::string_view. If we add a new std::sting type, we must process
       // the variant in repeat places when we want to get the value as a string. So we choose to
       // store the value as a std::string_view in the Common::Variant, and copy the value to the
       // string_buffer_ when we want to store the value as a string. It's a trade-off between
@@ -315,19 +315,19 @@ void Transaction::removeVariable(const std::string& name) {
   }
 }
 
-void Transaction::increaseVariable(size_t index, int value) {
+void Transaction::increaseVariable(size_t index, int64_t value) {
   assert(index < tx_variables_.size());
   if (index < tx_variables_.size()) {
     auto& variant = tx_variables_[index].variant_;
     if (IS_INT_VARIANT(variant))
-      [[likely]] { variant = std::get<int>(variant) + value; }
+      [[likely]] { variant = std::get<int64_t>(variant) + value; }
     else if (IS_EMPTY_VARIANT(variant)) {
       variant = value;
     }
   }
 }
 
-void Transaction::increaseVariable(const std::string& name, int value) {
+void Transaction::increaseVariable(const std::string& name, int64_t value) {
   auto index = engine_.getTxVariableIndex(name);
   if (index.has_value()) {
     increaseVariable(index.value(), value);
@@ -381,8 +381,8 @@ std::vector<std::pair<std::string_view, Common::Variant*>> Transaction::getVaria
   return variables;
 }
 
-int Transaction::getVariablesCount() const {
-  int count = 0;
+int64_t Transaction::getVariablesCount() const {
+  int64_t count = 0;
   for (auto& variable : tx_variables_) {
     if (!IS_EMPTY_VARIANT(variable.variant_)) {
       ++count;

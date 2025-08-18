@@ -41,10 +41,10 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(cookies.size())); },
+        { result.append(static_cast<int64_t>(cookies.size())); },
         // specify subname
         {
-          int count = cookies.count(sub_name_);
+          int64_t count = cookies.count(sub_name_);
           result.append(count);
         });
 

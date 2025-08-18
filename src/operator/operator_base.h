@@ -43,7 +43,7 @@ private:                                                                        
 #define MACRO_EXPAND_INT(var)                                                                      \
   Common::EvaluateResults result;                                                                  \
   macro_->evaluate(t, result);                                                                     \
-  int var = std::get<int>(result.front().variant_);
+  int64_t var = std::get<int64_t>(result.front().variant_);
 
 namespace Wge {
 namespace Operator {

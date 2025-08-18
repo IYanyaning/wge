@@ -66,10 +66,10 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(line_query_params.size() + body_query_params->size())); },
+        { result.append(static_cast<int64_t>(line_query_params.size() + body_query_params->size())); },
         // specify subname
         {
-          int count = line_query_params_map.count(sub_name_);
+          int64_t count = line_query_params_map.count(sub_name_);
           count += body_query_params_map->count(sub_name_);
           result.append(count);
         });

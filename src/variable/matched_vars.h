@@ -49,7 +49,7 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(t.getMatchedVariables(rule_chain_index).size())); },
+        { result.append(static_cast<int64_t>(t.getMatchedVariables(rule_chain_index).size())); },
         // specify subname
         { UNREACHABLE(); });
 

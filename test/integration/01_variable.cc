@@ -102,7 +102,7 @@ TEST_F(VariableTest, ARGS_GET_NAMES) {
   result.clear();
   all_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
-  EXPECT_EQ(std::get<int>(result.front().variant_), 4);
+  EXPECT_EQ(std::get<int64_t>(result.front().variant_), 4);
 
   Variable::ArgsGetNames sub("p1", false, false, "");
   result.clear();
@@ -114,7 +114,7 @@ TEST_F(VariableTest, ARGS_GET_NAMES) {
   result.clear();
   sub_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
-  EXPECT_EQ(std::get<int>(result.front().variant_), 1);
+  EXPECT_EQ(std::get<int64_t>(result.front().variant_), 1);
 
   {
     Variable::ArgsGetNames sub_regex("/^p/", false, false, "");
@@ -157,7 +157,7 @@ TEST_F(VariableTest, ARGS_GET) {
   result.clear();
   all_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
-  EXPECT_EQ(std::get<int>(result.front().variant_), 4);
+  EXPECT_EQ(std::get<int64_t>(result.front().variant_), 4);
 
   Variable::ArgsGet sub("p1", false, false, "");
   result.clear();
@@ -169,7 +169,7 @@ TEST_F(VariableTest, ARGS_GET) {
   result.clear();
   sub_count.evaluate(*t_, result);
   EXPECT_EQ(result.size(), 1);
-  EXPECT_EQ(std::get<int>(result.front().variant_), 1);
+  EXPECT_EQ(std::get<int64_t>(result.front().variant_), 1);
 
   {
     Variable::ArgsGet sub_regex("/^p/", false, false, "");
@@ -501,7 +501,7 @@ TEST_F(VariableTest, RULE) {
 
   t->processRequestHeaders(nullptr, nullptr, 0, nullptr);
   ASSERT_TRUE(t->hasVariable("test_count"));
-  EXPECT_EQ(std::get<int>(t->getVariable("test_count")), 2);
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("test_count")), 2);
   ASSERT_TRUE(t->hasVariable("operator_value"));
   EXPECT_EQ(std::get<std::string_view>(t->getVariable("operator_value")), "1");
 }
@@ -625,7 +625,7 @@ TEST_F(VariableTest, XML) {
   EXPECT_TRUE(t->hasVariable("tag_values_str"));
 
   // rule id: 2
-  EXPECT_EQ(std::get<int>(t->getVariable("tag_values_str_count")), 3);
+  EXPECT_EQ(std::get<int64_t>(t->getVariable("tag_values_str_count")), 3);
   EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_str_1")), "1");
   EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_str_2")), "fiction");
   EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_str_3")), "en");

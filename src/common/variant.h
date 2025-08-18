@@ -27,13 +27,13 @@
 
 namespace Wge {
 namespace Common {
-using Variant = std::variant<std::monostate, int, std::string_view>;
+using Variant = std::variant<std::monostate, int64_t, std::string_view>;
 } // namespace Common
 static const Common::Variant EMPTY_VARIANT;
 } // namespace Wge
 
 #define IS_EMPTY_VARIANT(variant) std::holds_alternative<std::monostate>(variant)
-#define IS_INT_VARIANT(variant) std::holds_alternative<int>(variant)
+#define IS_INT_VARIANT(variant) std::holds_alternative<int64_t>(variant)
 #define IS_STRING_VIEW_VARIANT(variant) std::holds_alternative<std::string_view>(variant)
 
 #define VISTIT_VARIANT_AS_STRING(variant)                                                          \

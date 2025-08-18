@@ -46,7 +46,7 @@ public:
     if (is_charset_) {
       static constexpr std::string_view key = "_charset_";
       if (is_counter_) {
-        int count = t.getBodyMultiPart().getNameValue().count(key);
+        int64_t count = t.getBodyMultiPart().getNameValue().count(key);
         result.append(count);
       } else {
         auto range = t.getBodyMultiPart().getNameValue().equal_range(key);
@@ -60,10 +60,10 @@ public:
 
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(t.getBodyMultiPart().getHeaders().size())); },
+        { result.append(static_cast<int64_t>(t.getBodyMultiPart().getHeaders().size())); },
         // specify subname
         {
-          int count = t.getBodyMultiPart().getHeaders().count(sub_name_);
+          int64_t count = t.getBodyMultiPart().getHeaders().count(sub_name_);
           result.append(count);
         });
 

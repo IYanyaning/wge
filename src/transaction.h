@@ -291,9 +291,9 @@ public:
    * Used for increase the value of a variable that the key of the variable can be evaluated at
    * parse time. Please refer to the createVariable method for more details.
    * @param index the index of the variable.
-   * @param value the int value to increase.
+   * @param value the int64_t value to increase.
    */
-  void increaseVariable(size_t index, int value = 1);
+  void increaseVariable(size_t index, int64_t value = 1);
 
   /**
    * Increase the value of a variable in the transient transaction collection
@@ -301,9 +301,9 @@ public:
    * Used for increase the value of a variable that the key of the variable can't be evaluated at
    * parse time. Please refer to the createVariable method for more details.
    * @param name the name of the variable.
-   * @param value the int value to increase.
+   * @param value the int64_t value to increase.
    */
-  void increaseVariable(const std::string& name, int value = 1);
+  void increaseVariable(const std::string& name, int64_t value = 1);
 
   /**
    * Get the value of a variable in the transient transaction collection
@@ -337,7 +337,7 @@ public:
    * collection.
    * @return the count of the variables.
    */
-  int getVariablesCount() const;
+  int64_t getVariablesCount() const;
 
   /**
    * Check if the variable exists in the transient transaction collection

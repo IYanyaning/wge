@@ -39,7 +39,7 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(size(t))); },
+        { result.append(static_cast<int64_t>(size(t))); },
         // specify subname
         {
           auto& value = get(t, sub_name_);

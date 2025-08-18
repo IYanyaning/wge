@@ -51,7 +51,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score = std::get<int>(t->getVariable("score"));
+    int64_t score = std::get<int64_t>(t->getVariable("score"));
     EXPECT_EQ(score, 1);
   }
 
@@ -73,7 +73,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
       }
     }
     EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
-    int score = std::get<int>(t->getVariable("barscore"));
+    int64_t score = std::get<int64_t>(t->getVariable("barscore"));
     EXPECT_EQ(score, 1);
   }
 
@@ -91,7 +91,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score = std::get<int>(t->getVariable("score2"));
+    int64_t score = std::get<int64_t>(t->getVariable("score2"));
     EXPECT_EQ(score, 100);
   }
 
@@ -113,8 +113,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
         action->evaluate(*t);
       }
     }
-    int score2 = std::get<int>(t->getVariable("score2"));
-    int score_bar = std::get<int>(t->getVariable("score_bar"));
+    int64_t score2 = std::get<int64_t>(t->getVariable("score2"));
+    int64_t score_bar = std::get<int64_t>(t->getVariable("score_bar"));
     EXPECT_EQ(score2, score_bar);
   }
 
@@ -135,8 +135,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
         action->evaluate(*t);
       }
     }
-    int score2 = std::get<int>(t->getVariable("score2"));
-    int score = std::get<int>(t->getVariable("score"));
+    int64_t score2 = std::get<int64_t>(t->getVariable("score2"));
+    int64_t score = std::get<int64_t>(t->getVariable("score"));
     auto foo = std::get<std::string_view>(t->getVariable("foo2"));
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
@@ -158,7 +158,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
     auto& actions1 = engine.rules(1).back()->actions();
     EXPECT_EQ(actions1.size(), 1);
     actions1.back()->evaluate(*t);
-    EXPECT_EQ(std::get<int>(t->getVariable("score2")), 1);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score2")), 1);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -187,7 +187,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
       action->evaluate(*t);
     }
     EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
-    EXPECT_EQ(std::get<int>(t->getVariable("score_bar")), 1);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score_bar")), 1);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -215,7 +215,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 200);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score1")), 200);
   }
 
   // Increase (value macro expansion)
@@ -236,8 +236,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -247,8 +247,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 300);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 300);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
   }
 
   // Decrease
@@ -268,7 +268,7 @@ TEST_F(RuleActionTest, ActionSetVar) {
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 50);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score1")), 50);
   }
 
   // Decrease (value macro expansion)
@@ -289,8 +289,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -300,8 +300,8 @@ TEST_F(RuleActionTest, ActionSetVar) {
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 100);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
   }
 }
 
@@ -320,7 +320,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score = std::get<int>(t->getVariable("score"));
+    int64_t score = std::get<int64_t>(t->getVariable("score"));
     EXPECT_EQ(score, 1);
   }
 
@@ -342,7 +342,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
       }
     }
     EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
-    int score = std::get<int>(t->getVariable("barscore"));
+    int64_t score = std::get<int64_t>(t->getVariable("barscore"));
     EXPECT_EQ(score, 1);
   }
 
@@ -360,7 +360,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto& actions = engine.rules(1).back()->actions();
     EXPECT_EQ(actions.size(), 1);
     actions.back()->evaluate(*t);
-    int score = std::get<int>(t->getVariable("score2"));
+    int64_t score = std::get<int64_t>(t->getVariable("score2"));
     EXPECT_EQ(score, 100);
   }
 
@@ -382,8 +382,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         action->evaluate(*t);
       }
     }
-    int score2 = std::get<int>(t->getVariable("score2"));
-    int score_bar = std::get<int>(t->getVariable("score_bar"));
+    int64_t score2 = std::get<int64_t>(t->getVariable("score2"));
+    int64_t score_bar = std::get<int64_t>(t->getVariable("score_bar"));
     EXPECT_EQ(score2, score_bar);
   }
 
@@ -404,8 +404,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
         action->evaluate(*t);
       }
     }
-    int score2 = std::get<int>(t->getVariable("score2"));
-    int score = std::get<int>(t->getVariable("score"));
+    int64_t score2 = std::get<int64_t>(t->getVariable("score2"));
+    int64_t score = std::get<int64_t>(t->getVariable("score"));
     auto foo = std::get<std::string_view>(t->getVariable("foo2"));
     EXPECT_EQ(foo, std::format("{}_{}", score2, score));
   }
@@ -427,7 +427,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     auto& actions1 = engine.rules(1).back()->actions();
     EXPECT_EQ(actions1.size(), 1);
     actions1.back()->evaluate(*t);
-    EXPECT_EQ(std::get<int>(t->getVariable("score2")), 1);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score2")), 1);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -456,7 +456,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
       action->evaluate(*t);
     }
     EXPECT_EQ(std::get<std::string_view>(t->getVariable("foo")), "bar");
-    EXPECT_EQ(std::get<int>(t->getVariable("score_bar")), 1);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score_bar")), 1);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -484,7 +484,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 200);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score1")), 200);
   }
 
   // Increase (value macro expansion)
@@ -505,8 +505,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -516,8 +516,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 300);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 300);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
   }
 
   // Decrease
@@ -537,7 +537,7 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
       EXPECT_EQ(actions.size(), 1);
       actions.back()->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score1")), 50);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score1")), 50);
   }
 
   // Decrease (value macro expansion)
@@ -558,8 +558,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     for (auto& action : actions1) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 200);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 200);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
 
     result = engine.load(rule_directive2);
     engine.init();
@@ -569,8 +569,8 @@ TEST_F(RuleActionTest, ActionSetVarWithNoSigleQuote) {
     for (auto& action : actions2) {
       action->evaluate(*t);
     }
-    EXPECT_EQ(std::get<int>(t->getVariable("score200")), 100);
-    EXPECT_EQ(std::get<int>(t->getVariable("score")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score200")), 100);
+    EXPECT_EQ(std::get<int64_t>(t->getVariable("score")), 100);
   }
 }
 

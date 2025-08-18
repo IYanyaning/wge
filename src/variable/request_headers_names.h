@@ -39,10 +39,10 @@ public:
   void evaluate(Transaction& t, Common::EvaluateResults& result) const override {
     RETURN_IF_COUNTER(
         // collection
-        { result.append(static_cast<int>(t.httpExtractor().request_header_count_)); },
+        { result.append(static_cast<int64_t>(t.httpExtractor().request_header_count_)); },
         // specify subname
         {
-          result.append(static_cast<int>(t.httpExtractor().request_header_find_(sub_name_).size()));
+          result.append(static_cast<int64_t>(t.httpExtractor().request_header_find_(sub_name_).size()));
         });
 
     RETURN_VALUE(
