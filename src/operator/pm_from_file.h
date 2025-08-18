@@ -39,6 +39,21 @@ namespace Operator {
  * operator uses a set-based matching algorithm (Aho-Corasick), which means that it will match any
  * number of keywords in parallel. When matching of a large number of keywords is needed, this
  * operator performs much better than a regular expression.
+ *
+ * The file format is as follows:
+ * - Each line represents a separate pattern.
+ * - Lines starting with "##!^ " are treated as prefixes. The patterns that follow will be prefixed
+ * with this value, but the previous patterns will not be affected.
+ * - Lines starting with "##!$ " are treated as suffixes. The patterns that follow will be suffixed
+ * with this value, but the previous patterns will not be affected.
+ * - Lines starting with "##!+ i" enable case-insensitive matching. The patterns that follow will be
+ * suffixed with this value, but the previous patterns will not be affected. Default is enabled.
+ * - Lines starting with "##!+ -i" disable case-insensitive matching. The patterns that follow will
+ * be suffixed with this value, but the previous patterns will not be affected.
+ * - Lines starting with "##!+ l" enable literal matching. The all patterns in the file will be
+ * affected. Default is enable.
+ * - Lines starting with "##!+ -l" disable literal matching. The all patterns in the file will be
+ * affected.
  */
 class PmFromFile : public OperatorBase {
   DECLARE_OPERATOR_NAME(pmFromFile);

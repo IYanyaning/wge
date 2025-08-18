@@ -59,6 +59,9 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool case_less, bool so
 
   clear();
 
+  std::string prefix;
+  std::string suffix;
+
   std::string buffer;
   uint64_t id = 0;
   while (std::getline(ifs, buffer)) {
@@ -71,10 +74,35 @@ bool ExpressionList::load(std::ifstream& ifs, bool utf8, bool case_less, bool so
     }
 
     if (buffer.starts_with("#")) {
+      if (buffer.starts_with("##!^ ")) {
+        // Prefix
+        prefix = buffer.substr(5);
+      } else if (buffer.starts_with("##!$ ")) {
+        // Suffix
+        suffix = buffer.substr(5);
+      } else if (buffer == "##!+ i") {
+        // Ignore case
+        flag |= HS_FLAG_CASELESS;
+      } else if (buffer == "##!+ -i") {
+        // Consider case
+        flag &= ~HS_FLAG_CASELESS;
+      } else if (buffer == "##!+ l") {
+        literal_ = true;
+      } else if (buffer == "##!+ -l") {
+        literal_ = false;
+      }
+
       continue;
     }
 
-    add({std::move(buffer), flag, id}, prefilter, false);
+    if (prefix.empty() && suffix.empty()) {
+      // No prefix and suffix, just add the pattern
+      add({std::move(buffer), flag, id}, prefilter, false);
+    } else {
+      // Add prefix and suffix to the pattern
+      add({prefix + buffer + suffix, flag, id}, prefilter, false);
+    }
+
     ++id;
   }
 
