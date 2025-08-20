@@ -95,14 +95,14 @@ public:
    * Get the front element of the results.
    * @return the front element of the results.
    */
-  Element& front() { return stack_results_[0]; }
+  const Element& front() const { return stack_results_[0]; }
 
   /**
    * Get the element of the results by index.
    * @param index the index of the results.
    * @return the element of the results.
    */
-  Element& get(size_t index) {
+  const Element& get(size_t index) const {
     assert(index < size_);
     if (index < size_)
       [[likely]] {
@@ -132,7 +132,7 @@ public:
   /**
    * Clear the result.
    */
-  const void clear() {
+  void clear() {
     heap_results_.clear();
     size_ = 0;
   }

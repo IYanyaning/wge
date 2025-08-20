@@ -146,7 +146,7 @@ bool Rule::evaluate(Transaction& t) const {
 
     // Evaluate each variable result
     for (size_t i = 0; i < result.size(); i++) {
-      Common::EvaluateResults::Element& variable_value = result.get(i);
+      const Common::EvaluateResults::Element& variable_value = result.get(i);
       bool variable_matched = false;
       transformed_value.clear();
       captured_value.clear();
@@ -426,7 +426,7 @@ inline bool Rule::evaluateWithMultiMatch(Transaction& t) const {
     transformed_value.clear();
     captured_value.clear();
     transform_list.clear();
-    Common::EvaluateResults::Element* evaluated_value = nullptr;
+    const Common::EvaluateResults::Element* evaluated_value = nullptr;
     for (size_t i = 0; i < result.size();) {
       if (evaluated_value == nullptr) {
         evaluated_value = &result.get(i);
