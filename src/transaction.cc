@@ -194,6 +194,13 @@ bool Transaction::processRequestBody(
     } break;
     case BodyProcessorType::Xml: {
       body_xml_.init(request_body_);
+      auto option = engine_.parseXmlIntoArgsOption();
+      if (option != ParseXmlIntoArgsOption::Off) {
+        body_query_param_.merge(body_xml_.getTags());
+      }
+      if (option == ParseXmlIntoArgsOption::OnlyArgs) {
+        body_xml_.clear();
+      }
     } break;
     case BodyProcessorType::Json: {
       body_json_.init(request_body_);

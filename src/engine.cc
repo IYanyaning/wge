@@ -84,6 +84,10 @@ const EngineConfig& Engine::config() const { return parser_->engineConfig(); }
 
 const AuditLogConfig& Engine::auditLogConfig() const { return parser_->auditLogConfig(); }
 
+ParseXmlIntoArgsOption Engine::parseXmlIntoArgsOption() const {
+  return parser_->parseXmlIntoArgsOption();
+}
+
 const Rule* Engine::findRuleById(uint64_t id) const {
   // An efficient and rational design should not call this method in the worker thread.
   // This assert check that this method can only be called in the main thread

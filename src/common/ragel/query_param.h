@@ -42,6 +42,19 @@ public:
     return query_param_linked_;
   }
 
+  void merge(const std::vector<std::pair<std::string_view, std::string_view>>& query_params) {
+    query_param_linked_.reserve(query_param_linked_.size() + query_params.size());
+    for (const auto& [key, value] : query_params) {
+      // Skip empty values
+      if (value.empty()) {
+        continue;
+      }
+
+      query_param_linked_.emplace_back(key, value);
+      query_param_map_.emplace(key, value);
+    }
+  }
+
 private:
   std::list<std::string> urldecoded_storage_;
   std::unordered_multimap<std::string_view, std::string_view> query_param_map_;

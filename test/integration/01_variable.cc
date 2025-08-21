@@ -635,6 +635,70 @@ TEST_F(VariableTest, XML) {
 
   // rule id: 4
   EXPECT_EQ(std::get<std::string_view>(t->getVariable("tag_attr_value_pmf")), "en");
+
+  // Test for parse xml into args option(On)
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "id:100,phase:1,ctl:requestBodyProcessor=XML"
+        SecParseXmlIntoArgs On
+        SecRule XML:/* "@streq XML GuideJohn Doe" \
+          "id:1, \
+          phase: 2, \
+          setvar:tx.tag_values_str"
+        SecRule &ARGS "@eq 2" \
+          "id:2, \
+          phase: 2, \
+          setvar: tx.args_count=2")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    t->processRequestHeaders(request_header_find_, request_header_traversal_,
+                             request_headers_.size(), nullptr);
+    t->processRequestBody(xml_body);
+
+    // rule id: 1
+    EXPECT_TRUE(t->hasVariable("tag_values_str"));
+
+    // rule id: 2
+    EXPECT_TRUE(t->hasVariable("args_count"));
+  }
+
+  // Test for parse xml into args option(OnlyArgs)
+  {
+    const std::string directive = R"(
+        SecRuleEngine On
+        SecAction "id:100,phase:1,ctl:requestBodyProcessor=XML"
+        SecParseXmlIntoArgs OnlyArgs
+        SecRule XML:/* "@streq XML GuideJohn Doe" \
+          "id:1, \
+          phase: 2, \
+          setvar:tx.tag_values_str"
+        SecRule &ARGS "@eq 2" \
+          "id:2, \
+          phase: 2, \
+          setvar: tx.args_count=2")";
+
+    Engine engine(spdlog::level::off);
+    auto result = engine.load(directive);
+    engine.init();
+    auto t = engine.makeTransaction();
+    ASSERT_TRUE(result.has_value());
+
+    t->processRequestHeaders(request_header_find_, request_header_traversal_,
+                             request_headers_.size(), nullptr);
+    t->processRequestBody(xml_body);
+
+    // rule id: 1
+    EXPECT_FALSE(t->hasVariable("tag_values_str"));
+
+    // rule id: 2
+    EXPECT_TRUE(t->hasVariable("args_count"));
+  }
 }
 } // namespace Integration
 } // namespace Wge

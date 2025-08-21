@@ -111,6 +111,12 @@ public:
   const AuditLogConfig& auditLogConfig() const;
 
   /**
+   * Get the Parse xml into args option
+   * @return the Parse xml into args option
+   */
+  ParseXmlIntoArgsOption parseXmlIntoArgsOption() const;
+
+  /**
    * Find the rule by id
    * @param id the rule id
    * @return pointer of rule if found, and nullptr otherwise
