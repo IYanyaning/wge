@@ -59,7 +59,8 @@ class PmFromFile : public OperatorBase {
   DECLARE_OPERATOR_NAME(pmFromFile);
 
 public:
-  PmFromFile(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path)
+  PmFromFile(std::string&& literal_value, bool is_not, std::string_view curr_rule_file_path,
+             const std::string& serialize_dir)
       : OperatorBase(std::move(literal_value), is_not) {
     // Make the file path absolute.
     std::string file_path = Common::File::makeFilePath(curr_rule_file_path, literal_value_);
@@ -74,8 +75,9 @@ public:
         return;
       }
 
-      auto hs_db =
-          std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, true, true, false, false);
+      const char* serialize_dir_cstr = serialize_dir.empty() ? nullptr : serialize_dir.c_str();
+      auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, true, true, true, false,
+                                                                   false, serialize_dir_cstr);
       scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
       database_cache_.emplace(file_path, hs_db);
     } else {

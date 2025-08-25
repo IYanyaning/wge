@@ -25,6 +25,7 @@
 
 #include "../common/empty_string.h"
 #include "../macro/macro_include.h"
+#include "../operator/pm_from_file.h"
 
 #define RETURN_ERROR(msg)                                                                          \
   should_visit_next_child_ = false;                                                                \
@@ -926,9 +927,15 @@ private:
             std::string original_operator_literal_value =
                 (*current_rule_iter_)->getOperator()->literalValue();
             if (!original_operator_literal_value.empty()) {
-              op = std::unique_ptr<Operator::OperatorBase>(
-                  new VarT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
-                           parser_->currLoadFile()));
+              if constexpr (std::is_same_v<VarT, Operator::PmFromFile>) {
+                op = std::unique_ptr<Operator::OperatorBase>(
+                    new VarT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
+                             parser_->currLoadFile(), parser_->engineConfig().pmf_serialize_dir_));
+              } else {
+                op = std::unique_ptr<Operator::OperatorBase>(
+                    new VarT(std::move(original_operator_literal_value), ctx->NOT() != nullptr,
+                             parser_->currLoadFile()));
+              }
             } else {
               op = std::unique_ptr<Operator::OperatorBase>(
                   new VarT((*current_rule_iter_)->getOperator()->macro(), ctx->NOT() != nullptr,
@@ -951,8 +958,14 @@ private:
             new VarT(macro.value(), ctx->NOT() != nullptr, parser_->currLoadFile()));
       }
     } else {
-      op = std::unique_ptr<Operator::OperatorBase>(new VarT(
-          ctx->string_with_macro()->getText(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+      if constexpr (std::is_same_v<VarT, Operator::PmFromFile>) {
+        op = std::unique_ptr<Operator::OperatorBase>(
+            new VarT(ctx->string_with_macro()->getText(), ctx->NOT() != nullptr,
+                     parser_->currLoadFile(), parser_->engineConfig().pmf_serialize_dir_));
+      } else {
+        op = std::unique_ptr<Operator::OperatorBase>(new VarT(
+            ctx->string_with_macro()->getText(), ctx->NOT() != nullptr, parser_->currLoadFile()));
+      }
     }
 
     (*current_rule_iter_)->setOperator(std::move(op));
