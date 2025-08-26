@@ -90,11 +90,17 @@ void Rule::initExceptVariables() {
 
 void Rule::initPmfOperator(const std::string& serialize_dir) {
   ASSERT_IS_MAIN_THREAD();
+
   if (operator_) {
     Operator::PmFromFile* pm_from_file = dynamic_cast<Operator::PmFromFile*>(operator_.get());
     if (pm_from_file) {
       pm_from_file->init(serialize_dir);
     }
+  }
+
+  // init the pmf operator of chained rule
+  if (!chain_.empty()) {
+    chain_.front()->initPmfOperator(serialize_dir);
   }
 }
 
