@@ -354,10 +354,9 @@ std::any Visitor::visitSec_rule_update_action_by_id(
       chain_index = ::atoll(id_and_chain_str.substr(pos + 1).c_str());
       current_rule_iter_ = parser_->findRuleById(id);
       if (current_rule_iter_ != parser_->rules().end()) {
+        // If the chain index is out of range, return itself
         current_rule_iter_ =
-            (*current_rule_iter_)
-                ->chainRule(chain_index)
-                .value_or(const_cast<std::list<std::unique_ptr<Rule>>&>(parser_->rules()).end());
+            (*current_rule_iter_)->chainRule(chain_index).value_or(current_rule_iter_);
       }
     }
   } else {

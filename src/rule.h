@@ -211,8 +211,7 @@ public:
    * Get the rule of the chain by index.
    * @param index the relative index of the chain that starts from this rule. Note that the index is
    * not same as the index of the chain that starts form the top rule.
-   * @return the rule of the chain by index, if the index is out of range, return last rule of the
-   * chain.
+   * @return std::nullopt if the he index is out of range, otherwise the iterator to the chain rule.
    */
   std::optional<std::list<std::unique_ptr<Rule>>::iterator> chainRule(size_t index) {
     std::optional<std::list<std::unique_ptr<Rule>>::iterator> result;
