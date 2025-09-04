@@ -306,16 +306,20 @@ void HsDataBase::loadOrCompile(const char* serialize_dir, bool support_stream) {
     WGE_LOG_INFO("Trying to load hyperscan database from {}", serialize_dir);
     // Ensure the lock file exists
     { std::ofstream ofs(flock_path, std::ios::app); }
-    boost::interprocess::file_lock flock(flock_path.c_str());
-    flock.lock();
+    try {
+      boost::interprocess::file_lock flock(flock_path.c_str());
+      flock.lock();
 
-    // Lock the serialize mutex to prevent concurrent access in this process
-    std::lock_guard<std::mutex> locker(serialize_mutex_);
+      // Lock the serialize mutex to prevent concurrent access in this process
+      std::lock_guard<std::mutex> locker(serialize_mutex_);
 
-    expressions_sha1_ = db_.expressions_.sha1();
-    load_from_serialize = loadFromSerialize(serialize_dir, support_stream);
+      expressions_sha1_ = db_.expressions_.sha1();
+      load_from_serialize = loadFromSerialize(serialize_dir, support_stream);
 
-    flock.unlock();
+      flock.unlock();
+    } catch (const std::exception& e) {
+      WGE_LOG_ERROR("Failed to lock serialize file: {}. error: {}", flock_path, e.what());
+    }
   }
 
   if (!load_from_serialize) {
@@ -328,15 +332,19 @@ void HsDataBase::loadOrCompile(const char* serialize_dir, bool support_stream) {
       WGE_LOG_INFO("Trying to save hyperscan database to {}", serialize_dir);
       // Ensure the lock file exists
       { std::ofstream ofs(flock_path, std::ios::app); }
-      boost::interprocess::file_lock flock(flock_path.c_str());
-      flock.lock();
+      try {
+        boost::interprocess::file_lock flock(flock_path.c_str());
+        flock.lock();
 
-      // Lock the serialize mutex to prevent concurrent access in this process
-      std::lock_guard<std::mutex> locker(serialize_mutex_);
+        // Lock the serialize mutex to prevent concurrent access in this process
+        std::lock_guard<std::mutex> locker(serialize_mutex_);
 
-      serialize(serialize_dir, support_stream);
+        serialize(serialize_dir, support_stream);
 
-      flock.unlock();
+        flock.unlock();
+      } catch (const std::exception& e) {
+        WGE_LOG_ERROR("Failed to lock serialize file: {}. error: {}", flock_path, e.what());
+      }
     }
   }
 }
