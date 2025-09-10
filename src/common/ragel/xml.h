@@ -48,6 +48,8 @@ public:
     tag_values_str_.clear();
   }
 
+  std::forward_list<std::string> moveHtmlDecodeBuffer() { return std::move(html_decode_buffer_); }
+
 private:
   std::vector<std::pair<std::string_view, std::string_view>> attributes_;
   std::vector<std::pair<std::string_view, std::string_view>> tags_;

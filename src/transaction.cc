@@ -196,7 +196,7 @@ bool Transaction::processRequestBody(
       body_xml_.init(request_body_);
       auto option = getParseXmlIntoArgs();
       if (option != ParseXmlIntoArgsOption::Off) {
-        body_query_param_.merge(body_xml_.getTags());
+        body_query_param_.merge(body_xml_.getTags(), body_xml_.moveHtmlDecodeBuffer());
       }
       if (option == ParseXmlIntoArgsOption::OnlyArgs) {
         body_xml_.clear();
