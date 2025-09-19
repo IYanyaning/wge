@@ -2539,4 +2539,20 @@ std::expected<std::shared_ptr<Macro::MacroBase>, std::string> Visitor::getMacro(
   visit_variable_mode_ = old_visit_variable_mode;
   return result;
 }
+
+void Visitor::setRuleNeedPushMatched(Variable::VariableBase* variable) {
+  auto main_name = variable->mainName();
+  const bool is_matched_variable = main_name == Variable::MatchedVar::main_name_ ||
+                                   main_name == Variable::MatchedVarName::main_name_ ||
+                                   main_name == Variable::MatchedVars::main_name_ ||
+                                   main_name == Variable::MatchedVarsNames::main_name_;
+  if (is_matched_variable) {
+    auto parent = (*current_rule_iter_)->parentRule();
+    if (parent) {
+      parent->setNeedPushMatched(true);
+    } else {
+      (*current_rule_iter_)->setNeedPushMatched(true);
+    }
+  }
+}
 } // namespace Wge::Antlr4

@@ -233,7 +233,9 @@ public:
 
   int chainIndex() const { return chain_index_; }
   const Rule* parentRule() const { return parent_rule_; }
+  Rule* parentRule() { return parent_rule_; }
   const Rule* topRule() const { return top_rule_; }
+  Rule* topRule() { return top_rule_; }
 
 public:
   void appendVariable(std::unique_ptr<Variable::VariableBase>&& var);
@@ -252,6 +254,9 @@ public:
 
   void setOperator(std::unique_ptr<Operator::OperatorBase>&& op);
   const std::unique_ptr<Operator::OperatorBase>& getOperator() const { return operator_; }
+
+  bool isNeedPushMatched() const { return is_need_push_matched_; }
+  void setNeedPushMatched(bool need) { is_need_push_matched_ = need; }
 
   // Evaluate the rule
 private:
@@ -281,6 +286,13 @@ private:
 
   // Build the index to quick find
   std::unordered_map<Variable::FullName, Variable::VariableBase&> variables_index_by_full_name_;
+
+  // Indicates whether the matched variable needs to be pushed to the transaction's
+  // matched_variables_.
+  // If any action that requires the matched variable is defined or MATCHED_VAR/MATCHED_VAR_NAME
+  // variable is used, this flag will be set to true. Otherwise, it will be false.
+  // This flag is used to optimize the performance of the rule evaluation.
+  bool is_need_push_matched_{false};
 
   // Action Group: Meta-data
 private:

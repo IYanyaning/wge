@@ -842,18 +842,21 @@ private:
       const std::vector<Wge::Antlr4::Antlr4Gen::SecLangParser::VariableContext*>& macro_ctx_array,
       bool is_only_macro);
 
+  void setRuleNeedPushMatched(Variable::VariableBase* variable);
+
   template <class VarT, class CtxT> std::any appendVariable(CtxT* ctx) {
     std::string sub_name;
     if (ctx->STRING()) {
       sub_name = ctx->STRING()->getText();
     }
-    bool is_not = ctx->NOT() != nullptr;
-    bool is_counter = ctx->VAR_COUNT() != nullptr;
+    const bool is_not = ctx->NOT() != nullptr;
+    const bool is_counter = ctx->VAR_COUNT() != nullptr;
 
     if (visit_variable_mode_ == VisitVariableMode::Ctl) {
       // std::any is copyable, so we can't return a unique_ptr
       std::shared_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
+      setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
@@ -865,6 +868,7 @@ private:
     } else if (visit_variable_mode_ == VisitVariableMode::Macro) {
       std::shared_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), false, false, parser_->currLoadFile()));
+      setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx.yyy format
       if (ctx->COLON()) {
@@ -883,6 +887,7 @@ private:
     } else {
       std::unique_ptr<Variable::VariableBase> variable(
           new VarT(std::move(sub_name), is_not, is_counter, parser_->currLoadFile()));
+      setRuleNeedPushMatched(variable.get());
 
       // Only accept xxx:yyy format
       if (ctx->DOT()) {
