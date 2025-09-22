@@ -22,11 +22,14 @@
 
 #include <string_view>
 #include <unordered_set>
+#include <variant>
 
 #include "../common/file.h"
 #include "../common/hyperscan/scanner.h"
+#include "../common/literal_match/scanner.h"
 #include "../common/log.h"
 #include "../common/pcre/scanner.h"
+#include "../common/re2/scanner.h"
 #include "../rule.h"
 #include "../transaction.h"
 
@@ -40,32 +43,13 @@ public:
   CollectionBase(const std::string& sub_name, std::string_view curr_rule_file_path)
       : curr_rule_file_path_(curr_rule_file_path) {
     if (sub_name.size() >= 3) {
+      bool hyperscan = false;
       if (sub_name.front() == '/' && sub_name.back() == '/') {
-        regex_accept_scanner_ = std::make_unique<Common::Pcre::Scanner>(
-            std::string_view{sub_name.data() + 1, sub_name.size() - 2}, false, false);
+        regex_accept_scanner_ =
+            createScanner(std::string_view(sub_name.data() + 1, sub_name.size() - 2), false);
       } else if (sub_name.front() == '@' && sub_name.back() == '@') {
-        // Make the file path absolute.
-        std::string temp_file_path(sub_name.data() + 1, sub_name.size() - 2);
-        std::string file_path = Common::File::makeFilePath(curr_rule_file_path_, temp_file_path);
-
-        // Load the hyperscan database and create a scanner.
-        // We cache the hyperscan database to avoid loading(complie) the same database multiple
-        // times.
-        auto iter = database_cache_.find(file_path);
-        if (iter == database_cache_.end()) {
-          std::ifstream ifs(file_path);
-          if (!ifs.is_open()) {
-            WGE_LOG_ERROR("Failed to open hyperscan database file: {}", file_path);
-            return;
-          }
-
-          auto hs_db = std::make_shared<Common::Hyperscan::HsDataBase>(ifs, false, true, false,
-                                                                       false, false);
-          pmf_accept_scanner_ = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
-          database_cache_.emplace(file_path, hs_db);
-        } else {
-          pmf_accept_scanner_ = std::make_unique<Common::Hyperscan::Scanner>(iter->second);
-        }
+        regex_accept_scanner_ =
+            createScanner(std::string_view(sub_name.data() + 1, sub_name.size() - 2), true);
       }
     }
   }
@@ -78,33 +62,11 @@ public:
    */
   void addExceptVariable(std::string_view variable_sub_name) {
     if (variable_sub_name.front() == '/' && variable_sub_name.back() == '/') {
-      regex_except_scanners_.emplace_back(std::make_unique<Common::Pcre::Scanner>(
-          std::string_view{variable_sub_name.data() + 1, variable_sub_name.size() - 2}, false,
-          false));
+      regex_except_scanners_.emplace_back(createScanner(
+          std::string_view(variable_sub_name.data() + 1, variable_sub_name.size() - 2), false));
     } else if (variable_sub_name.front() == '@' && variable_sub_name.back() == '@') {
-      // Make the file path absolute.
-      std::string temp_file_path(variable_sub_name.data() + 1, variable_sub_name.size() - 2);
-      std::string file_path = Common::File::makeFilePath(curr_rule_file_path_, temp_file_path);
-
-      // Load the hyperscan database and create a scanner.
-      // We cache the hyperscan database to avoid loading(complie) the same database multiple
-      // times.
-      auto iter = database_cache_.find(file_path);
-      if (iter == database_cache_.end()) {
-        std::ifstream ifs(file_path);
-        if (!ifs.is_open()) {
-          WGE_LOG_ERROR("Failed to open hyperscan database file: {}", file_path);
-          return;
-        }
-
-        auto hs_db =
-            std::make_shared<Common::Hyperscan::HsDataBase>(ifs, false, true, false, false, false);
-        pmf_except_scanners_.emplace_back(std::make_unique<Common::Hyperscan::Scanner>(hs_db));
-        database_cache_.emplace(file_path, hs_db);
-      } else {
-        pmf_except_scanners_.emplace_back(
-            std::make_unique<Common::Hyperscan::Scanner>(iter->second));
-      }
+      regex_except_scanners_.emplace_back(createScanner(
+          std::string_view(variable_sub_name.data() + 1, variable_sub_name.size() - 2), true));
     } else {
       except_variables_.insert(variable_sub_name);
     }
@@ -119,40 +81,50 @@ public:
    */
   bool hasExceptVariable(Transaction& t, std::string_view variable_main_name,
                          std::string_view variable_sub_name) const {
-    if (except_variables_.find(variable_sub_name) != except_variables_.end())
+    if (!except_variables_.empty())
       [[unlikely]] {
-        WGE_LOG_TRACE("variable {}:{} is in the except list", variable_main_name,
-                      variable_sub_name);
-        return true;
-      }
-
-    if (!regex_except_scanners_.empty())
-      [[unlikely]] {
-        for (auto& except_scanner : regex_except_scanners_) {
-          if (except_scanner->match(variable_sub_name)) {
-            WGE_LOG_TRACE("variable {}:{} is in the except list by regex", variable_main_name,
+        if (except_variables_.find(variable_sub_name) != except_variables_.end())
+          [[unlikely]] {
+            WGE_LOG_TRACE("variable {}:{} is in the except list", variable_main_name,
                           variable_sub_name);
             return true;
           }
-        }
       }
 
-    if (!pmf_except_scanners_.empty())
+    bool match = false;
+    if (!regex_except_scanners_.empty())
       [[unlikely]] {
-        for (auto& except_scanner : pmf_except_scanners_) {
-          bool match = false;
-          pmf_accept_scanner_->blockScan(
-              variable_sub_name, Common::Hyperscan::Scanner::ScanMode::Normal,
-              [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
-                 void* user_data) {
-                bool* match = reinterpret_cast<bool*>(user_data);
-                *match = true;
-                return 1;
+        for (auto& except_scanner : regex_except_scanners_) {
+          std::visit(
+              [&](auto&& scanner) {
+                using T = std::decay_t<decltype(scanner)>;
+                if constexpr (std::is_same_v<T, std::monostate>) {
+                  // No scanner, do nothing
+                } else if constexpr (std::is_same_v<T,
+                                                    std::unique_ptr<Common::Hyperscan::Scanner>>) {
+                  scanner->blockScan(
+                      variable_sub_name, Common::Hyperscan::Scanner::ScanMode::Normal,
+                      [](uint64_t id, unsigned long long from, unsigned long long to,
+                         unsigned int flags, void* user_data) {
+                        bool* match = reinterpret_cast<bool*>(user_data);
+                        *match = true;
+                        return 1;
+                      },
+                      &match);
+                  if (match) {
+                    WGE_LOG_TRACE("variable {}:{} is in the except list by pmf", variable_main_name,
+                                  variable_sub_name);
+                  }
+                } else {
+                  match = scanner->match(variable_sub_name);
+                  if (match) {
+                    WGE_LOG_TRACE("variable {}:{} is in the except list by regex",
+                                  variable_main_name, variable_sub_name);
+                  }
+                }
               },
-              &match);
+              except_scanner);
           if (match) {
-            WGE_LOG_TRACE("variable {}:{} is in the except list by pmf", variable_main_name,
-                          variable_sub_name);
             return true;
           }
         }
@@ -173,25 +145,30 @@ public:
     return false;
   }
 
-  bool isRegex() const {
-    return regex_accept_scanner_ != nullptr || pmf_accept_scanner_ != nullptr;
-  }
+  bool isRegex() const { return !std::holds_alternative<std::monostate>(regex_accept_scanner_); }
 
   bool match(std::string_view subject) const {
     bool match = false;
-    if (regex_accept_scanner_) {
-      match = regex_accept_scanner_->match(subject);
-    } else if (pmf_accept_scanner_) {
-      pmf_accept_scanner_->blockScan(
-          subject, Common::Hyperscan::Scanner::ScanMode::Normal,
-          [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
-             void* user_data) {
-            bool* match = reinterpret_cast<bool*>(user_data);
-            *match = true;
-            return 1;
-          },
-          &match);
-    }
+    std::visit(
+        [&](auto&& scanner) {
+          using T = std::decay_t<decltype(scanner)>;
+          if constexpr (std::is_same_v<T, std::monostate>) {
+            // No scanner, do nothing
+          } else if constexpr (std::is_same_v<T, std::unique_ptr<Common::Hyperscan::Scanner>>) {
+            scanner->blockScan(
+                subject, Common::Hyperscan::Scanner::ScanMode::Normal,
+                [](uint64_t id, unsigned long long from, unsigned long long to, unsigned int flags,
+                   void* user_data) {
+                  bool* match = reinterpret_cast<bool*>(user_data);
+                  *match = true;
+                  return 1;
+                },
+                &match);
+          } else {
+            match = scanner->match(subject);
+          }
+        },
+        regex_accept_scanner_);
 
     return match;
   }
@@ -200,10 +177,55 @@ protected:
   std::unordered_set<std::string_view> except_variables_;
 
 private:
-  std::unique_ptr<Common::Pcre::Scanner> regex_accept_scanner_;
-  std::vector<std::unique_ptr<Common::Pcre::Scanner>> regex_except_scanners_;
-  std::unique_ptr<Common::Hyperscan::Scanner> pmf_accept_scanner_;
-  std::vector<std::unique_ptr<Common::Hyperscan::Scanner>> pmf_except_scanners_;
+  using Scanner = std::variant<
+      std::monostate, std::unique_ptr<Common::Re2::Scanner>, std::unique_ptr<Common::Pcre::Scanner>,
+      std::unique_ptr<Common::LiteralMatch::Scanner>, std::unique_ptr<Common::Hyperscan::Scanner>>;
+
+private:
+  Scanner createScanner(std::string_view pattern, bool hyperscan) const {
+    Scanner scanner;
+    if (hyperscan) {
+      // Make the file path absolute.
+      std::string temp_file_path(pattern.data(), pattern.size());
+      std::string file_path = Common::File::makeFilePath(curr_rule_file_path_, temp_file_path);
+
+      // Load the hyperscan database and create a scanner.
+      // We cache the hyperscan database to avoid loading(complie) the same database multiple
+      // times.
+      auto iter = database_cache_.find(file_path);
+      if (iter == database_cache_.end()) {
+        std::ifstream ifs(file_path);
+        if (!ifs.is_open()) {
+          WGE_LOG_ERROR("Failed to open hyperscan database file: {}", file_path);
+          return scanner;
+        }
+
+        auto hs_db =
+            std::make_shared<Common::Hyperscan::HsDataBase>(ifs, false, true, false, false, false);
+        scanner = std::make_unique<Common::Hyperscan::Scanner>(hs_db);
+        database_cache_.emplace(file_path, hs_db);
+      } else {
+        scanner = std::make_unique<Common::Hyperscan::Scanner>(iter->second);
+      }
+      return scanner;
+    }
+
+    if (Common::LiteralMatch::Scanner::isLiteralPattern(pattern)) {
+      scanner = std::make_unique<Common::LiteralMatch::Scanner>(pattern, false);
+    } else {
+      auto re2 = std::make_unique<Common::Re2::Scanner>(pattern, false, false);
+      if (re2->ok()) {
+        scanner = std::move(re2);
+      } else {
+        scanner = std::make_unique<Common::Pcre::Scanner>(pattern, false, false);
+      }
+    }
+    return scanner;
+  }
+
+private:
+  Scanner regex_accept_scanner_;
+  std::vector<Scanner> regex_except_scanners_;
   std::string_view curr_rule_file_path_;
   // Cache the hyperscan database
   static std::unordered_map<std::string, std::shared_ptr<Common::Hyperscan::HsDataBase>>

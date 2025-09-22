@@ -37,11 +37,12 @@ public:
 
 public:
   void match(std::string_view subject, std::vector<std::pair<size_t, size_t>>& result) const;
+  bool match(std::string_view subject) const;
 
 private:
   enum class LiteralType {
     Empty,     // ^$
-    NotEmpty,  // ^.+$
+    NotEmpty,  // ^.+$ or ^.*$
     Exact,     // ^pattern$
     Prefix,    // ^pattern
     Suffix,    // pattern$

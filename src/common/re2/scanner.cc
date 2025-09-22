@@ -49,6 +49,8 @@ void Scanner::match(std::string_view subject,
     }
   }
 }
+
+bool Scanner::match(std::string_view subject) const { return RE2::PartialMatch(subject, *re2_); }
 } // namespace Re2
 } // namespace Common
 } // namespace Wge

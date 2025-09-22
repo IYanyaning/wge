@@ -37,6 +37,10 @@ Scanner::Scanner(std::string_view pattern, bool case_less) : case_less_(case_les
 bool Scanner::isLiteralPattern(std::string_view pattern) {
   static const std::string regex_chars = ".*+?{}[]|()\\";
 
+  if (pattern == "^.*$" || pattern == "^.+$") {
+    return true;
+  }
+
   return pattern.find_first_of(regex_chars) == std::string_view::npos;
 }
 
@@ -58,7 +62,7 @@ void Scanner::match(std::string_view subject,
   } break;
   case LiteralType::NotEmpty: {
     if (!subject.empty()) {
-      result.emplace_back(0, 0);
+      result.emplace_back(0, subject.size());
     }
   } break;
   case LiteralType::Exact: {
@@ -85,6 +89,40 @@ void Scanner::match(std::string_view subject,
   default:
     UNREACHABLE();
     break;
+  }
+}
+
+bool Scanner::match(std::string_view subject) const {
+  std::string lower_subject;
+  if (case_less_) {
+    lower_subject.reserve(subject.size());
+    std::transform(subject.begin(), subject.end(), std::back_inserter(lower_subject),
+                   [](unsigned char c) { return std::tolower(c); });
+    subject = lower_subject;
+  }
+
+  switch (type_) {
+  case LiteralType::Empty: {
+    return subject.empty();
+  } break;
+  case LiteralType::NotEmpty: {
+    return !subject.empty();
+  } break;
+  case LiteralType::Exact: {
+    return subject == pattern_;
+  } break;
+  case LiteralType::Prefix: {
+    return subject.starts_with(pattern_);
+  } break;
+  case LiteralType::Suffix: {
+    return subject.ends_with(pattern_);
+  } break;
+  case LiteralType::SubString: {
+    return subject.find(pattern_) != std::string_view::npos;
+  } break;
+  default:
+    UNREACHABLE();
+    return false;
   }
 }
 
@@ -120,7 +158,7 @@ void Scanner::determineType(std::string_view pattern) {
 
   if (pattern_.empty()) {
     type_ = LiteralType::Empty;
-  } else if (pattern_ == ".+") {
+  } else if (pattern_ == ".+" || pattern_ == ".*") {
     type_ = LiteralType::NotEmpty;
   } else if (has_anchor_start && has_anchor_end) {
     type_ = LiteralType::Exact;
