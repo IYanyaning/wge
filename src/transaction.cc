@@ -639,11 +639,11 @@ inline bool Transaction::process(int phase) {
     }
 
     // Skip the rules if current rule that has a skip action or skipAfter action is matched
-    int skip = current_rule_->skip() + 1;
+    int skip = current_rule_->skip();
     if (skip > 0)
       [[unlikely]] {
-        if (std::distance(iter, rules.end()) > skip) {
-          iter += skip;
+        if (std::distance(iter, rules.end()) > skip + 1) {
+          iter += skip + 1;
         } else {
           iter = rules.end();
         }
