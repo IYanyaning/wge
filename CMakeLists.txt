@@ -34,3 +34,7 @@ install(
   DESTINATION include/wge
   FILES_MATCHING PATTERN "*.h"
 )
+
+install(
+  TARGETS wge_shared
+)
