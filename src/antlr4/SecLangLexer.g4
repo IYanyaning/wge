@@ -664,6 +664,9 @@ T: 't' -> pushMode(ModeSecRuleActionT);
 Tag: 'tag';
 Ver: 'ver';
 Xmlns: 'xmlns' -> pushMode(ModeSecRuleActionRedirect);
+// Extensions:
+FirstMatch: 'firstMatch';
+EmptyMatch: 'emptyMatch';
 
 mode ModeSecRuleActionSetVar;
 ModeSecRuleActionSetVar_WS: WS -> skip;
