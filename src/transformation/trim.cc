@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -26,13 +26,23 @@
 namespace Wge {
 namespace Transformation {
 bool Trim::evaluate(std::string_view data, std::string& result) const {
-  std::string left_result;
-  auto ret1 = trimLeft(data, left_result);
+  bool changed = false;
 
-  std::string_view right_input = ret1 ? left_result : data;
-  auto ret2 = trimRight(right_input, result);
+  std::string tmp;
+  std::string_view cur = data;
 
-  return ret1 || ret2;
+  if (trimLeft(cur, tmp)) {
+    cur = tmp;
+    changed = true;
+  }
+
+  if (trimRight(cur, result)) {
+    changed = true;
+  } else if (changed) {
+    result.assign(cur);
+  }
+
+  return changed;
 }
 
 std::unique_ptr<StreamState, std::function<void(StreamState*)>> Trim::newStream() const {

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -535,7 +535,9 @@ TEST_F(TransformationTest, trim) {
   const std::vector<TestCase> test_cases = {
       {false, "This is a test", "This is a test"},
       {true, "\t\n\r\f\v\x20 This is a test \t\n\r\f\v\x20", "This is a test"},
-      {true, "\t\n\r\f\v\x20 ", ""}};
+      {true, "\t\n\r\f\v\x20 ", ""},
+      {true, "\t\n\r\f\v\x20 This is a test", "This is a test"},
+      {true, "This is a test\t\n\r\f\v\x20 ", "This is a test"}};
 
   evaluate<Wge::Transformation::Trim>(test_cases);
   evaluateStream<Wge::Transformation::Trim>(test_cases);
