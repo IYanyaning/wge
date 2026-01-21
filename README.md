@@ -151,7 +151,7 @@ t->processResponseBody(/*params*/);
 Refer to the [wge_benchmark](benchmarks/wge/main.cc) for usage examples.
 
 ## License
-Copyright (c) 2024-2025 Stone Rhino and contributors.
+Copyright (c) 2024-2026 Stone Rhino and contributors.
 The WGE is distributed under MIT. Please see the enclosed [LICENSE](LICENSE) file for full details.
 
 ## Documentation
