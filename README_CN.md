@@ -12,7 +12,7 @@ WGE 是一个基于 C++ 的高性能 Web 应用防火墙（WAF）库。它已成
 处理器: Intel(R) Core(TM) i5-10400 CPU @ 2.90GHz   2.90 GHz  
 内存: 32GB  
 操作系统: Ubuntu 20.04.6 LTS (5.15.153.1-microsoft-standard-WSL2)  
-Worker Thread: 8  
+工作线程: 8  
 测试样本: [白样本](benchmarks/test_data/white.data) 以及 [黑样本](benchmarks/test_data/black.data)
 
 | 规则集         | 内存池(TCMalloc) |ModSecurity |    WGE     |
