@@ -179,9 +179,8 @@ t->processResponseBody(/*params*/);
 WGE 采用 MIT 许可证发布。有关完整详情，请参阅随附的 [开源许可证](LICENSE) 文件。
 
 ## 文档
-我们正在编写 WGE 的文档。在此期间，请参考相关项目中的源代码和示例，以了解如何使用该库。
-### 相关项目
-* [WGE-Connectors](https://github.com/stone-rhino/wge-connectors): 用于将 WGE 集成到各种 Web 服务器和框架中的连接器集合。
+- 文档站点：[https://stone-rhino.github.io/wge](https://stone-rhino.github.io/wge/) 我们正在编写 WGE 的文档。在此期间，请参考`WGE-Connectors`项目的源代码和示例，以了解如何使用该库。
+- [WGE-Connectors](https://github.com/stone-rhino/wge-connectors): 用于将 WGE 集成到各种 Web 服务器和框架中的连接器集合。
 
 ## 贡献
 我们欢迎对 WGE 的贡献！如果您有任何想法、建议或错误报告，请在 GitHub 上打开问题或提交拉取请求。在贡献之前，请阅读我们的 [贡献指南](CONTRIBUTING_CN.md)。

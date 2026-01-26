@@ -177,9 +177,8 @@ Copyright (c) 2024-2026 Stone Rhino and contributors.
 The WGE is distributed under MIT. Please see the enclosed [LICENSE](LICENSE) file for full details.
 
 ## Documentation
-We are working on the documentation for WGE. In the meantime, please refer to the source code and examples in the related projects for guidance on how to use the library.
-### Related Projects
-* [WGE-Connectors](https://github.com/stone-rhino/wge-connectors): A collection of connectors for integrating WGE with various web servers and frameworks.
+- Documentation Site: [https://stone-rhino.github.io/wge](https://stone-rhino.github.io/wge/) We are working on the documentation for WGE. In the meantime, please refer to the source code and examples in the `WGE-Connectors` project for guidance on how to use the library.
+- [WGE-Connectors](https://github.com/stone-rhino/wge-connectors): A collection of connectors for integrating WGE with various web servers and frameworks.
 
 ## Contributing
 We welcome contributions to WGE! If you have any ideas, suggestions, or bug reports, please open an issue or submit a pull request on GitHub. Before contributing, please read our [CONTRIBUTING](CONTRIBUTING.md) guidelines.
