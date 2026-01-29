@@ -3,6 +3,11 @@
     <img src="https://avatars.githubusercontent.com/u/215498892?s=400&u=8e3433ea2368169c950ca497194776511c8a1837&v=4" width=200 height=200/>
 </p>
 
+![GitHub License](https://img.shields.io/github/license/stone-rhino/wge)
+![GitHub Tag](https://img.shields.io/github/v/tag/stone-rhino/wge)
+![GitHub Repo Size](https://img.shields.io/github/repo-size/stone-rhino/wge)
+[![Deploy Hugo site to GitHub Pages](https://github.com/stone-rhino/wge/actions/workflows/hugo-docs.yml/badge.svg)](https://github.com/stone-rhino/wge/actions/workflows/hugo-docs.yml)
+
 English | [简体中文](README_ZH.md)
 
 ## What is WGE?
