@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -36,14 +36,18 @@ namespace Common {
  * @tparam VALUE the type of value
  * @tparam hash_table_slot_count the count of hash table slot, must be a prime number
  */
-template <typename KEY, typename VALUE, size_t hash_table_slot_count = 8191> class LruCache {
+template <typename KEY, typename VALUE, size_t hash_table_slot_count = 8191,
+          typename Hash = std::hash<KEY>, typename KeyEqual = std::equal_to<KEY>>
+class LruCache {
 public:
-  LruCache(size_t max_size = 1024 * 16) : max_size_(max_size > 0 ? max_size : 1) {}
+  LruCache(size_t max_size = 1024 * 16, Hash hash = Hash(), KeyEqual eq = KeyEqual())
+      : max_size_(max_size > 0 ? max_size : 1), map_(hash, eq) {}
   LruCache(const LruCache& cache) = delete;
 
 private:
   struct Node;
-  using HashTableType = HashTable<KEY, typename std::list<Node>::iterator, hash_table_slot_count>;
+  using HashTableType =
+      HashTable<KEY, typename std::list<Node>::iterator, hash_table_slot_count, Hash, KeyEqual>;
 
 public:
   /**
@@ -56,8 +60,10 @@ public:
    * @param value_factory_cb when the cache of the specified key does not exist, use this factory
    * function to generate a new node.
    */
-  void access(const KEY& key, std::function<void(VALUE&)> found,
+  template <typename K>
+  void access(const K& key, std::function<void(VALUE&)> found,
               std::function<VALUE()> value_factory_cb) {
+    static_assert(!std::is_same_v<K, size_t>, "K cannot be size_t");
     map_.readLock(key);
 
     // Find the node and process it
@@ -65,13 +71,13 @@ public:
       map_.readUnlock(key);
       return;
     }
+    map_.readUnlock(key);
 
     if (!value_factory_cb) {
       return;
     }
 
     // Upgrade to write lock, this operation is not atomic, need to verify again whether it exists
-    map_.readUnlock(key);
     map_.writeLock(key);
     if (lookup(key, found)) {
       map_.writeUnlock(key);
@@ -102,7 +108,8 @@ public:
    * @param found the operation to be performed after finding (adding) the cache of the specified
    * key.
    */
-  void peek(const KEY& key, std::function<void(const VALUE*)> found) {
+  template <typename K> void peek(const K& key, std::function<void(const VALUE*)> found) {
+    static_assert(!std::is_same_v<K, size_t>, "K cannot be size_t");
     if (!found) {
       return;
     }
@@ -208,7 +215,8 @@ private:
 
 private:
   // Find the node and process it
-  bool lookup(const KEY& key, std::function<void(VALUE&)> found) {
+  template <typename K> bool lookup(const K& key, std::function<void(VALUE&)> found) {
+    static_assert(!std::is_same_v<K, size_t>, "K cannot be size_t");
     auto iter = map_.find(key);
     if (iter != map_.end(key)) {
       mutex_.lock();

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -42,14 +42,16 @@ namespace Common {
  * @tparam VALUE the type of value
  * @tparam slot_count the count of hash table slot, must be a prime number
  */
-template <typename KEY, typename VALUE, size_t slot_count = 8191> class HashTable {
+template <typename KEY, typename VALUE, size_t slot_count = 8192, typename Hash = std::hash<KEY>,
+          typename KeyEqual = std::equal_to<KEY>>
+class HashTable {
 public:
-  HashTable(std::function<size_t(const KEY&)> hash_func = nullptr,
+  HashTable(Hash hash = Hash(), KeyEqual eq = KeyEqual(),
             size_t per_locker = 8 // Each locker manages 8 slots by default
             )
       : slots_(slot_count),
         per_locker_(per_locker == 0 ? 1 : (per_locker > slot_count ? slot_count : per_locker)),
-        hash_func_(hash_func) {
+        hash_(hash), eq_(eq) {
     static_assert(!std::is_same<KEY, size_t>::value, "KEY cannot be size_t");
     size_t locker_count = caclLockerCount(per_locker_);
     lockers_.reserve(locker_count);
@@ -60,7 +62,9 @@ public:
 
 public:
   struct Node {
-    Node(const KEY& k, const VALUE& v) : key(k), value(v) {}
+    template <typename K, typename V>
+    Node(K&& k, V&& v) : key(std::forward<K>(k)), value(std::forward<V>(v)) {}
+
     KEY key;
     VALUE value;
   };
@@ -114,26 +118,22 @@ public:
    * @param key the key of the node
    * @return iterator the iterator of the node
    */
-  iterator find(const KEY& key) { return internalFind(getSlotIndex(key), key); }
+  template <typename K> iterator find(const K& key) {
+    static_assert(!std::is_same_v<K, size_t>,
+                  "K cannot be size_t to avoid ambiguity with index parameter");
+    return internalFind(getSlotIndex(key), key);
+  }
 
   /**
-   * Insert a node
+   * Find the node with known slot index (avoid redundant hash computation)
+   * @param index the slot index
    * @param key the key of the node
-   * @param value the value of the node
-   * @return iterator the iterator of the inserted node
+   * @return iterator the iterator of the node
    */
-  iterator insert(const KEY& key, const VALUE& value) {
-    size_t index = getSlotIndex(key);
-    iterator iter = internalFind(index, key);
-    if (iter != end(key)) {
-      return iter;
-    }
-
-    slots_[index].emplace_front(key, value);
-    iter.slot_index_ = index;
-    iter.node_iter_ = slots_[index].begin();
-
-    return iter;
+  template <typename K> iterator findWithIndex(size_t index, const K& key) {
+    static_assert(!std::is_same_v<K, size_t>,
+                  "K cannot be size_t to avoid ambiguity with index parameter");
+    return internalFind(index, key);
   }
 
   /**
@@ -142,14 +142,17 @@ public:
    * @param value the value of the node
    * @return iterator the iterator of the inserted node
    */
-  iterator insert(KEY&& key, VALUE&& value) {
+  template <typename K, typename V> iterator insert(K&& key, V&& value) {
+    static_assert(!std::is_same_v<std::decay_t<K>, size_t>,
+                  "K cannot be size_t to avoid ambiguity with index parameter");
     size_t index = getSlotIndex(key);
     iterator iter = internalFind(index, key);
-    if (iter != end(key)) {
+    if (iter != end(index)) { // Use index-based end() to avoid redundant hash computation
       return iter;
     }
 
-    slots_[index].emplace_front(std::forward<KEY>(key), std::forward<VALUE>(value));
+    slots_[index].emplace_front(std::forward<K>(key), std::forward<V>(value));
+
     iter.slot_index_ = index;
     iter.node_iter_ = slots_[index].begin();
 
@@ -185,11 +188,17 @@ public:
    * @param key the specified key
    * @return iterator the begin iterator of the specified key
    */
-  iterator begin(const KEY& key) {
-    iterator iter;
-    iter.slot_index_ = getSlotIndex(key);
-    iter.node_iter_ = slots_[iter.slot_index_].begin();
+  template <typename K> iterator begin(const K& key) { return begin(getSlotIndex(key)); }
 
+  /**
+   * Get the begin iterator of the specified index
+   * @param index the slot index
+   * @return iterator the begin iterator of the specified index
+   */
+  iterator begin(size_t index) {
+    iterator iter;
+    iter.slot_index_ = index;
+    iter.node_iter_ = slots_[index].begin();
     return iter;
   }
 
@@ -198,11 +207,17 @@ public:
    * @param key the specified key
    * @return iterator the end iterator of the specified key
    */
-  iterator end(const KEY& key) {
-    iterator iter;
-    iter.slot_index_ = getSlotIndex(key);
-    iter.node_iter_ = slots_[iter.slot_index_].end();
+  template <typename K> iterator end(const K& key) { return end(getSlotIndex(key)); }
 
+  /**
+   * Get the end iterator of the specified index
+   * @param index the slot index
+   * @return iterator the end iterator of the specified index
+   */
+  iterator end(size_t index) {
+    iterator iter;
+    iter.slot_index_ = index;
+    iter.node_iter_ = slots_[index].end();
     return iter;
   }
 
@@ -218,13 +233,15 @@ public:
    * Lock the read lock of the group
    * @param key the key of the node
    */
-  void readLock(const KEY& key) { lockers_[getLockerIndex(getSlotIndex(key))]->lock_shared(); }
+  template <typename K> void readLock(const K& key) {
+    lockers_[getLockerIndex(getSlotIndex(key))]->lock_shared();
+  }
   void readLock(size_t index) {
     if (index < slots_.size()) {
       lockers_[getLockerIndex(index)]->lock_shared();
     }
   }
-  bool tryReadLock(const KEY& key) {
+  template <typename K> bool tryReadLock(const K& key) {
     return lockers_[getLockerIndex(getSlotIndex(key))]->try_lock_shared();
   }
   bool tryReadLock(size_t index) {
@@ -239,7 +256,9 @@ public:
    * Unlock the read lock of the group
    * @param key the key of the node
    */
-  void readUnlock(const KEY& key) { lockers_[getLockerIndex(getSlotIndex(key))]->unlock_shared(); }
+  template <typename K> void readUnlock(const K& key) {
+    lockers_[getLockerIndex(getSlotIndex(key))]->unlock_shared();
+  }
   void readUnlock(size_t index) {
     if (index < slots_.size()) {
       lockers_[getLockerIndex(index)]->unlock_shared();
@@ -250,13 +269,15 @@ public:
    * Lock the write lock of the group
    * @param key the key of the node
    */
-  void writeLock(const KEY& key) { lockers_[getLockerIndex(getSlotIndex(key))]->lock(); }
+  template <typename K> void writeLock(const K& key) {
+    lockers_[getLockerIndex(getSlotIndex(key))]->lock();
+  }
   void writeLock(size_t index) {
     if (index < slots_.size()) {
       lockers_[getLockerIndex(index)]->lock();
     }
   }
-  bool tryWriteLock(const KEY& key) {
+  template <typename K> bool tryWriteLock(const K& key) {
     return lockers_[getLockerIndex(getSlotIndex(key))]->try_lock();
   }
   bool tryWriteLock(size_t index) {
@@ -271,7 +292,9 @@ public:
    * Unlock the write lock of the group
    * @param key the key of the node
    */
-  void writeUnlock(const KEY& key) { lockers_[getLockerIndex(getSlotIndex(key))]->unlock(); }
+  template <typename K> void writeUnlock(const K& key) {
+    lockers_[getLockerIndex(getSlotIndex(key))]->unlock();
+  }
   void writeUnlock(size_t index) {
     if (index < slots_.size()) {
       lockers_[getLockerIndex(index)]->unlock();
@@ -282,7 +305,8 @@ private:
   std::vector<std::forward_list<Node>> slots_;
   std::vector<std::unique_ptr<std::shared_mutex>> lockers_;
   size_t per_locker_;
-  std::function<size_t(const KEY&)> hash_func_;
+  Hash hash_;
+  KeyEqual eq_;
 
 private:
   /**
@@ -290,12 +314,8 @@ private:
    * @param key the key of the node
    * @return size_t the group index
    */
-  size_t getSlotIndex(const KEY& key) const {
-    if (hash_func_) {
-      return hash_func_(key) % slots_.size();
-    } else {
-      return std::hash<KEY>()(key) % slots_.size();
-    }
+  template <typename K> size_t getSlotIndex(const K& key) const {
+    return hash_(key) % slots_.size();
   }
 
   /**
@@ -325,13 +345,13 @@ private:
    * @param key the key of the node
    * @return iterator the iterator of the node
    */
-  iterator internalFind(size_t slot_index, const KEY& key) const {
+  template <typename K> iterator internalFind(size_t slot_index, const K& key) const {
     iterator findIter;
     std::forward_list<Node>& list = const_cast<std::forward_list<Node>&>(slots_[slot_index]);
     findIter.slot_index_ = slot_index;
     findIter.node_iter_ = list.end();
     for (auto iter = list.begin(); iter != list.end(); ++iter) {
-      if (iter->key == key) {
+      if (eq_(iter->key, key)) {
         findIter.node_iter_ = iter;
         break;
       }
