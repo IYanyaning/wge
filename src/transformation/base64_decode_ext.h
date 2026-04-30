@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -22,6 +22,7 @@
 
 #include <string>
 
+#include "base64_decode.h"
 #include "transform_base.h"
 
 namespace Wge {
@@ -30,10 +31,13 @@ class Base64DecodeExt final : public TransformBase {
   DECLARE_TRANSFORM_NAME(base64DecodeExt);
 
 public:
-  bool evaluate(std::string_view data, std::string& result) const override {
-    assert(false);
-    throw "Not implemted!";
-  }
+  bool evaluate(std::string_view data, std::string& result) const override;
+  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
+  StreamResult evaluateStream(std::string_view input, std::string& output, StreamState& state,
+                              bool end_stream) const override;
+
+private:
+  Base64Decode base64_decode_{};
 };
 } // namespace Transformation
 } // namespace Wge

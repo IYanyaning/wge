@@ -82,6 +82,20 @@ template <class T> void evaluateStream(const std::vector<TestCase>& test_cases, 
     const auto& test_case = test_cases[i];
     auto state = transform.newStream();
     std::string output;
+
+    if constexpr ((std::is_same_v<T, Wge::Transformation::Md5> ||
+                   std::is_same_v<T, Wge::Transformation::Sha1>)) {
+      if (test_case.input_.size() == 0) {
+        auto stream_result = transform.evaluateStream(test_case.input_, output, *state, true);
+        EXPECT_EQ(stream_result, Wge::Transformation::StreamResult::SUCCESS);
+        if (output != test_case.output_) {
+          std::cout << "Test case index: " << i << std::endl;
+        }
+        EXPECT_EQ(output, test_case.output_);
+        continue;
+      }
+    }
+
     for (size_t j = 0; j < test_case.input_.size();) {
       size_t input_step = std::min(step, test_case.input_.size() - j);
       std::string_view input(&test_case.input_[j], input_step);
@@ -105,7 +119,15 @@ template <class T> void evaluateStream(const std::vector<TestCase>& test_cases) 
 }
 
 TEST_F(TransformationTest, base64DecodeExt) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const std::vector<TestCase> test_cases = {
+      {true, "VGhpcyBpcyBhIHRlc3Q=", "This is a test"},
+      {true, "VGhpcyBpcyBhIHRlc3Q", "This is a test"},
+      {true, R"(VGhpcy(Bp)cyB#hIH@Rl!c3Q=)", "This is a test"},
+      {true, "VGhpcyBpcyBhIHRlc3=VGhpcyBpcyBhIHRlc3", "This is a tes"},
+  };
+
+  evaluate<Wge::Transformation::Base64DecodeExt>(test_cases);
+  evaluateStream<Wge::Transformation::Base64DecodeExt>(test_cases);
 }
 
 TEST_F(TransformationTest, base64Decode) {
@@ -121,7 +143,25 @@ TEST_F(TransformationTest, base64Decode) {
 }
 
 TEST_F(TransformationTest, base64Encode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const std::vector<TestCase> test_cases = {
+      {false, "", ""},
+      {true, "This is a test", "VGhpcyBpcyBhIHRlc3Q="},
+      {true, "f", "Zg=="},
+      {true, "fo", "Zm8="},
+      {true, "foo", "Zm9v"},
+      {true, "foob", "Zm9vYg=="},
+      {true, "fooba", "Zm9vYmE="},
+      {true, "foobar", "Zm9vYmFy"},
+      {true, std::string(1, '\x00'), "AA=="},
+      {true, std::string(2, '\x00'), "AAA="},
+      {true, std::string(3, '\x00'), "AAAA"},
+      {true, std::string("\xff\xfe\xfd"), "//79"},
+      {true, "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/",
+       "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrLw=="},
+  };
+
+  evaluate<Wge::Transformation::Base64Encode>(test_cases);
+  evaluateStream<Wge::Transformation::Base64Encode>(test_cases);
 }
 
 TEST_F(TransformationTest, cmdLine) {
@@ -286,7 +326,14 @@ TEST_F(TransformationTest, lowercase) {
 }
 
 TEST_F(TransformationTest, md5) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  const std::vector<TestCase> test_cases = {
+      {true, "This is a test", "ce114e4501d2f4e2dcea3e17b546f339"},
+      {true, "test", "098f6bcd4621d373cade4e832627b4f6"},
+      {true, "", "d41d8cd98f00b204e9800998ecf8427e"},
+  };
+
+  evaluate<Wge::Transformation::Md5>(test_cases);
+  evaluateStream<Wge::Transformation::Md5>(test_cases);
 }
 
 TEST_F(TransformationTest, normalisePathWin) {
@@ -419,15 +466,56 @@ TEST_F(TransformationTest, normalisePath) {
 }
 
 TEST_F(TransformationTest, parityEven7Bit) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  // ParityEven7Bit: Even parity conversion
+  // - Calculate parity using the lower 7 bits
+  // - If the lower 7 bits contain an odd number of 1s, set bit7=1 to make the overall parity even.
+  // - If the lower 7 bits contain an even number of 1s, set bit7=0.
+  const std::vector<TestCase> test_cases = {
+      {false, "", ""},
+      {true, std::string(1, '\x00'), std::string(1, '\x00')},
+      {true, std::string(1, '\x01'), std::string(1, '\x81')},
+      {true, std::string(1, '\x03'), std::string(1, '\x03')},
+      {true, std::string(1, '\x7F'), std::string(1, '\xFF')},
+      {true, std::string(1, '\x80'), std::string(1, '\x00')},
+      {true, std::string(1, '\x81'), std::string(1, '\x81')},
+      {true, std::string("\x00\x01\x03\x7F", 4), std::string("\x00\x81\x03\xFF", 4)},
+      {true, "A", "A"},
+      {true, "B", "B"},
+      {true, "C", std::string(1, '\xC3')},
+  };
+
+  evaluate<Wge::Transformation::ParityEven7Bit>(test_cases);
+  evaluateStream<Wge::Transformation::ParityEven7Bit>(test_cases);
 }
 
 TEST_F(TransformationTest, parityOdd7Bit) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  // Odd parity: If the lower 7 bits contain an even number of 1s, set bit7=1; otherwise, set
+  // bit7=0.
+  const std::vector<TestCase> test_cases = {
+      {false, "", ""},
+      {true, std::string(1, '\x00'), std::string(1, '\x80')},
+      {true, std::string(1, '\x01'), std::string(1, '\x01')},
+      {true, std::string(1, '\x03'), std::string(1, '\x83')},
+      {true, std::string(1, '\x7F'), std::string(1, '\x7F')},
+      {true, std::string("\x00\x01\x03\x7F", 4), std::string("\x80\x01\x83\x7F", 4)},
+      {true, std::string(1, '\x81'), std::string(1, '\x01')},
+  };
+
+  evaluate<Wge::Transformation::ParityOdd7Bit>(test_cases);
+  evaluateStream<Wge::Transformation::ParityOdd7Bit>(test_cases);
 }
 
-TEST_F(TransformationTest, ParityZero7Bit) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+TEST_F(TransformationTest, parityZero7Bit) {
+  const std::vector<TestCase> test_cases = {
+      {false, "", ""},
+      {true, "Hello", "Hello"},
+      {true, "\x81\x82\x83", "\x01\x02\x03"},
+      {true, "\xFF\x7F\xF0", "\x7F\x7F\x70"},
+      {true, "\x90\xA0\xB0\xC0\xD0\xE0\xF0", "\x10\x20\x30\x40\x50\x60\x70"},
+  };
+
+  evaluate<Wge::Transformation::ParityZero7Bit>(test_cases);
+  evaluateStream<Wge::Transformation::ParityZero7Bit>(test_cases);
 }
 
 TEST_F(TransformationTest, removeComments) {
@@ -503,14 +591,36 @@ TEST_F(TransformationTest, replaceNulls) {
 TEST_F(TransformationTest, sha1) {
   const std::vector<TestCase> test_cases = {
       {true, "This is a test", "a54d88e06612d820bc3be72877c74f257b561b19"},
-      {true, "This is a test data", "80ce9fbcd1461f1b81357159f1f261eddd0681dd"}};
+      {true, "This is a test data", "80ce9fbcd1461f1b81357159f1f261eddd0681dd"},
+      {true, "", "da39a3ee5e6b4b0d3255bfef95601890afd80709"}};
 
   evaluate<Wge::Transformation::Sha1>(test_cases);
   evaluateStream<Wge::Transformation::Sha1>(test_cases);
 }
 
 TEST_F(TransformationTest, sqlHexDecode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  // Test SQL hex decoding - converts hex format (0x414243) to ASCII (ABC)
+  const std::vector<TestCase> test_cases = {
+      // Basic hex decode
+      {true, "0x414243", "ABC"},
+      {true, "0x41424344", "ABCD"},
+      // Lowercase prefix
+      {true, "0x616263", "abc"},
+      {false, "414243", "414243"},
+      // Multiple hex strings
+      {true, "0x4142430x444546", "ABCDEF"},
+      // Mixed with normal text
+      {true, "0x414243test", "ABCtest"},
+      {true, "0x410x1", "A0x1"},
+      {true, "0x410x1G0x4243", "A0x1GBC"},
+      // Empty
+      {false, "", ""},
+      // Invalid hex
+      {false, "0xGG", "0xGG"},
+  };
+
+  evaluate<Wge::Transformation::SqlHexDecode>(test_cases);
+  evaluateStream<Wge::Transformation::SqlHexDecode>(test_cases);
 }
 
 TEST_F(TransformationTest, trimLeft) {
@@ -551,7 +661,22 @@ TEST_F(TransformationTest, trim) {
 }
 
 TEST_F(TransformationTest, upperCase) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  // Test uppercase transformation
+  const std::vector<TestCase> test_cases = {
+      // No change if already uppercase
+      {false, "THIS IS A TEST", "THIS IS A TEST"},
+      // Convert to uppercase
+      {true, "this is a test", "THIS IS A TEST"},
+      // Mix case - only letters converted
+      {true, R"(ThiS iS A TeSt~!@#$%^&*()_+)", "THIS IS A TEST~!@#$%^&*()_+"},
+      // Numbers and special chars unchanged
+      {true, "abc123!@#", "ABC123!@#"},
+      // Empty string
+      {false, "", ""},
+  };
+
+  evaluate<Wge::Transformation::UpperCase>(test_cases);
+  evaluateStream<Wge::Transformation::UpperCase>(test_cases);
 }
 
 TEST_F(TransformationTest, urlDecodeUni) {
@@ -581,7 +706,27 @@ TEST_F(TransformationTest, urlDecode) {
 }
 
 TEST_F(TransformationTest, urlEncode) {
-  // TODO(zhouyu 2025-03-21): Implement this test
+  // Test URL encoding - encodes special characters to %XX format
+  const std::vector<TestCase> test_cases = {
+      // Normal characters - not encoded
+      {false, "hello", "hello"},
+      {false, "abc123", "abc123"},
+      // Special characters - encoded
+      {true, "hello world", "hello%20world"},
+      {true, "a=b&c=d", "a%3Db%26c%3Dd"},
+      {true, "test\ntest", "test%0Atest"},
+      {true, "test\ttab", "test%09tab"},
+      {true, "hello%world", "hello%25world"},
+      {true, "path/foo", "path%2Ffoo"},
+      // Empty and single char
+      {false, "", ""},
+      {true, " ", "%20"},
+      // Mix of encoded and non-encoded
+      {true, "foo=bar&baz=qux", "foo%3Dbar%26baz%3Dqux"},
+  };
+
+  evaluate<Wge::Transformation::UrlEncode>(test_cases);
+  evaluateStream<Wge::Transformation::UrlEncode>(test_cases);
 }
 
 TEST_F(TransformationTest, utf8ToUnicode) {

@@ -18,22 +18,21 @@
  * DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
-#pragma once
-
-#include <string>
-
-#include "transform_base.h"
+#include "base64_decode_ext.h"
 
 namespace Wge {
 namespace Transformation {
-class Base64Encode final : public TransformBase {
-  DECLARE_TRANSFORM_NAME(base64Encode);
+bool Base64DecodeExt::evaluate(std::string_view data, std::string& result) const {
+  return base64_decode_.evaluate(data, result);
+}
 
-public:
-  bool evaluate(std::string_view data, std::string& result) const override;
-  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
-  StreamResult evaluateStream(std::string_view input, std::string& output, StreamState& state,
-                              bool end_stream) const override;
-};
+std::unique_ptr<StreamState, std::function<void(StreamState*)>> Base64DecodeExt::newStream() const {
+  return base64_decode_.newStream();
+}
+
+StreamResult Base64DecodeExt::evaluateStream(std::string_view input, std::string& output,
+                                             StreamState& state, bool end_stream) const {
+  return base64_decode_.evaluateStream(input, output, state, end_stream);
+}
 } // namespace Transformation
 } // namespace Wge

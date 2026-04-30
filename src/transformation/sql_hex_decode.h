@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -30,10 +30,10 @@ class SqlHexDecode final : public TransformBase {
   DECLARE_TRANSFORM_NAME(sqlHexDecode);
 
 public:
-  bool evaluate(std::string_view data, std::string& result) const override {
-    assert(false);
-    throw "Not implemted!";
-  }
+  bool evaluate(std::string_view data, std::string& result) const override;
+  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const override;
+  StreamResult evaluateStream(std::string_view input, std::string& output, StreamState& state,
+                              bool end_stream) const override;
 };
 } // namespace Transformation
 } // namespace Wge

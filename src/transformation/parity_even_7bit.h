@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2024-2025 Stone Rhino and contributors.
+ * Copyright (c) 2024-2026 Stone Rhino and contributors.
  *
  * MIT License (http://opensource.org/licenses/MIT)
  *
@@ -31,8 +31,62 @@ class ParityEven7Bit final : public TransformBase {
 
 public:
   bool evaluate(std::string_view data, std::string& result) const override {
-    assert(false);
-    throw "Not implemted!";
+    if (data.empty()) {
+      result.clear();
+      return false;
+    }
+
+    result.resize(data.size());
+
+    const unsigned char* in = reinterpret_cast<const unsigned char*>(data.data());
+    unsigned char* out = reinterpret_cast<unsigned char*>(result.data());
+
+    for (size_t i = 0; i < data.size(); ++i) {
+      unsigned char c = in[i];
+      unsigned char x = c & 0x7F;
+
+      x ^= x >> 4;
+      x &= 0x0F;
+      unsigned char parity = (0x6996 >> x) & 1;
+
+      out[i] = (c & 0x7F) | (parity << 7);
+    }
+
+    return true;
+  }
+
+  std::unique_ptr<StreamState, std::function<void(StreamState*)>> newStream() const {
+    return std::make_unique<Wge::Transformation::StreamState>();
+  }
+
+  StreamResult evaluateStream(std::string_view input, std::string& output, StreamState& /*state*/,
+                              bool end_stream) const {
+
+    if (input.empty()) {
+      if (end_stream) {
+        return StreamResult::SUCCESS;
+      }
+      return StreamResult::NEED_MORE_DATA;
+    }
+
+    size_t old_size = output.size();
+    output.resize(old_size + input.size());
+
+    const unsigned char* in = reinterpret_cast<const unsigned char*>(input.data());
+    unsigned char* out = reinterpret_cast<unsigned char*>(output.data()) + old_size;
+
+    for (size_t i = 0; i < input.size(); ++i) {
+      unsigned char c = in[i];
+      unsigned char x = c & 0x7F;
+
+      x ^= x >> 4;
+      x &= 0x0F;
+      unsigned char parity = (0x6996 >> x) & 1;
+
+      out[i] = (c & 0x7F) | (parity << 7);
+    }
+
+    return end_stream ? StreamResult::SUCCESS : StreamResult::NEED_MORE_DATA;
   }
 };
 } // namespace Transformation
