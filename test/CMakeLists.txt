@@ -36,3 +36,7 @@ target_link_libraries(test PRIVATE antlr4_static)
 
 find_package(re2 CONFIG REQUIRED)
 target_link_libraries(test PRIVATE re2::re2)
+
+pkg_check_modules(LUAJIT REQUIRED luajit)
+target_include_directories(test PRIVATE ${LUAJIT_INCLUDE_DIRS})
+target_link_libraries(test PRIVATE ${LUAJIT_LIBRARIES})

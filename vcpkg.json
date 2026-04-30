@@ -11,6 +11,7 @@
     "libxml2",
     "boost-uuid",
     "boost-unordered",
-    "boost-interprocess"
+    "boost-interprocess",
+    "luajit"
   ]
 }

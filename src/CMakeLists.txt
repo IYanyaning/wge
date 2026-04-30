@@ -63,6 +63,10 @@ pkg_check_modules(HYPERSCAN REQUIRED libhs)
 target_link_directories(wge_shared PRIVATE ${HYPERSCAN_LIBRARY_DIRS})
 target_link_libraries(wge_shared PRIVATE ${HYPERSCAN_LIBRARIES})
 
+pkg_check_modules(LUAJIT REQUIRED luajit)
+target_include_directories(wge_shared PRIVATE ${LUAJIT_INCLUDE_DIRS})
+target_link_libraries(wge_shared PRIVATE ${LUAJIT_LIBRARIES})
+
 # Set consistent output names (only filename differs by suffix)
 set_target_properties(wge PROPERTIES OUTPUT_NAME "wge")
 set_target_properties(wge_shared PROPERTIES OUTPUT_NAME "wge")

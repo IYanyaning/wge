@@ -9,6 +9,8 @@ file(GLOB local_source
   re2/*.cc
   literal_match/*.h
   literal_match/*.cc
+  lua/*.h
+  lua/*.cc
 )
 
 
@@ -27,3 +29,7 @@ target_link_libraries(common PRIVATE ${HYPERSCAN_LIBRARIES})
 
 find_package(re2 CONFIG REQUIRED)
 target_link_libraries(common PRIVATE re2::re2)
+
+pkg_check_modules(LUAJIT REQUIRED luajit)
+target_include_directories(common PRIVATE ${LUAJIT_INCLUDE_DIRS})
+target_link_libraries(common PRIVATE ${LUAJIT_LIBRARIES})
